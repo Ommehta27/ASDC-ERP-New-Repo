@@ -1,0 +1,2238 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model assessments {
+  id            String           @id
+  title         String
+  description   String?
+  type          AssessmentType
+  status        AssessmentStatus @default(SCHEDULED)
+  enrollmentId  String
+  studentId     String
+  maxScore      Float
+  obtainedScore Float?
+  passingScore  Float
+  passed        Boolean?
+  scheduledDate DateTime
+  completedDate DateTime?
+  gradedDate    DateTime?
+  feedback      String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime
+  enrollments   enrollments      @relation(fields: [enrollmentId], references: [id])
+  students      students         @relation(fields: [studentId], references: [id])
+
+  @@index([enrollmentId])
+  @@index([status])
+  @@index([studentId])
+}
+
+model audit_logs {
+  id        String      @id
+  userId    String
+  action    AuditAction
+  entity    String
+  entityId  String
+  changes   Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime    @default(now())
+
+  @@index([createdAt])
+  @@index([entity])
+  @@index([userId])
+}
+
+model center_inventories {
+  id                  String          @id
+  itemId              String
+  centerId            String
+  quantity            Int             @default(0)
+  location            String?
+  condition           ItemCondition   @default(NEW)
+  status              ItemStatus      @default(AVAILABLE)
+  purchaseDate        DateTime?
+  purchasePrice       Float?
+  supplier            String?
+  invoiceNumber       String?
+  serialNumbers       String[]
+  lastMaintenanceDate DateTime?
+  nextMaintenanceDate DateTime?
+  warrantyExpiryDate  DateTime?
+  notes               String?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime
+  centers             centers         @relation(fields: [centerId], references: [id])
+  inventory_items     inventory_items @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([itemId, centerId])
+  @@index([centerId])
+  @@index([itemId])
+  @@index([status])
+}
+
+model centers {
+  id                                                            String                  @id
+  code                                                          String                  @unique
+  name                                                          String
+  address                                                       String
+  city                                                          String
+  state                                                         String
+  pincode                                                       String
+  phone                                                         String
+  email                                                         String?
+  capacity                                                      Int
+  status                                                        CenterStatus            @default(ACTIVE)
+  createdAt                                                     DateTime                @default(now())
+  updatedAt                                                     DateTime
+  batches                                                       batches[]
+  center_inventories                                            center_inventories[]
+  courses                                                       courses[]
+  employees                                                     employees[]
+  enrollments                                                   enrollments[]
+  inquiries                                                     inquiries[]
+  inventory_consumption                                         inventory_consumption[]
+  inventory_transfers_inventory_transfers_fromCenterIdTocenters inventory_transfers[]   @relation("inventory_transfers_fromCenterIdTocenters")
+  inventory_transfers_inventory_transfers_toCenterIdTocenters   inventory_transfers[]   @relation("inventory_transfers_toCenterIdTocenters")
+  placements                                                    placements[]
+  purchase_orders                                               purchase_orders[]
+  purchases                                                     purchases[]
+  students                                                      students[]
+  user_allocations                                              user_allocations[]
+  users                                                         users[]
+  cost_centers                                                  cost_centers[]
+
+  @@index([code])
+  @@index([state])
+  @@index([status])
+}
+
+model chart_of_accounts {
+  id                      String              @id
+  accountCode             String              @unique
+  accountName             String
+  accountType             AccountType
+  accountCategory         AccountCategory
+  accountSubCategory      AccountSubCategory?
+  parentAccountId         String?
+  level                   Int                 @default(0)
+  description             String?
+  gstApplicable           Boolean             @default(false)
+  gstRate                 Float?
+  hsnSacCode              String?
+  tdsApplicable           Boolean             @default(false)
+  tdsSection              String?
+  tdsRate                 Float?
+  tcsApplicable           Boolean             @default(false)
+  tcsSection              String?
+  tcsRate                 Float?
+  openingBalance          Float               @default(0)
+  openingBalanceType      String?
+  currentBalance          Float               @default(0)
+  budgetAmount            Float?
+  budgetPeriod            String?
+  isActive                Boolean             @default(true)
+  isSystemAccount         Boolean             @default(false)
+  isControlAccount        Boolean             @default(false)
+  allowPosting            Boolean             @default(true)
+  requiresReconciliation  Boolean             @default(false)
+  lastReconciled          DateTime?
+  reconciledBy            String?
+  createdBy               String?
+  updatedBy               String?
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime
+  chart_of_accounts       chart_of_accounts?    @relation("chart_of_accountsTochart_of_accounts", fields: [parentAccountId], references: [id], onDelete: Restrict)
+  other_chart_of_accounts chart_of_accounts[]   @relation("chart_of_accountsTochart_of_accounts")
+  budgets                 budgets[]
+  budget_transactions     budget_transactions[]
+
+  @@index([accountCategory])
+  @@index([accountCode])
+  @@index([accountSubCategory])
+  @@index([accountType])
+  @@index([isActive])
+  @@index([parentAccountId])
+}
+
+model company_info {
+  id                 String   @id
+  companyName        String
+  legalName          String?
+  tagline            String?
+  logo               String?
+  website            String?
+  email              String?
+  phone              String?
+  fax                String?
+  registeredAddress  String?
+  registeredCity     String?
+  registeredState    String?
+  registeredPincode  String?
+  registeredCountry  String?  @default("India")
+  corporateAddress   String?
+  corporateCity      String?
+  corporateState     String?
+  corporatePincode   String?
+  corporateCountry   String?  @default("India")
+  gstin              String?
+  pan                String?
+  tan                String?
+  cin                String?
+  udyamRegistration  String?
+  bankName           String?
+  bankBranch         String?
+  bankAccountNumber  String?
+  bankAccountType    String?
+  ifscCode           String?
+  swiftCode          String?
+  poPrefix           String?  @default("PO-")
+  poNumberPadding    Int      @default(6)
+  invoicePrefix      String?  @default("INV-")
+  quotationPrefix    String?  @default("QT-")
+  termsAndConditions String?
+  declarationText    String?
+  signatureTitle     String?  @default("Authorized Signatory")
+  isoLicense         String?
+  msmeNumber         String?
+  importExportCode   String?
+  financialYearStart Int      @default(4)
+  currency           String   @default("INR")
+  currencySymbol     String   @default("₹")
+  foundedYear        Int?
+  numberOfEmployees  Int?
+  industry           String?
+  description        String?
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime
+  createdBy          String?
+  updatedBy          String?
+}
+
+model courses {
+  id            String           @id
+  code          String           @unique
+  name          String
+  description   String?
+  category      String
+  difficulty    CourseDifficulty @default(BEGINNER)
+  duration      Int
+  fees          Float
+  prerequisites String?
+  status        CourseStatus     @default(ACTIVE)
+  centerId      String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime
+  batches       batches[]
+  centers       centers?         @relation(fields: [centerId], references: [id])
+  enrollments   enrollments[]
+
+  @@index([category])
+  @@index([code])
+  @@index([status])
+}
+
+model dashboard_metrics {
+  id                String   @id
+  date              DateTime @unique @default(now())
+  totalStudents     Int      @default(0)
+  activeStudents    Int      @default(0)
+  newInquiries      Int      @default(0)
+  newEnrollments    Int      @default(0)
+  completedStudents Int      @default(0)
+  placedStudents    Int      @default(0)
+  totalCenters      Int      @default(0)
+  activeCenters     Int      @default(0)
+  totalCourses      Int      @default(0)
+  activeCourses     Int      @default(0)
+  totalRevenue      Float    @default(0)
+  pendingRevenue    Float    @default(0)
+  placementRate     Float    @default(0)
+  averageSalary     Float    @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime
+
+  @@index([date])
+}
+
+model employees {
+  id                  String                @id
+  employeeCode        String                @unique
+  userId              String                @unique
+  dateOfBirth         DateTime?
+  gender              String?
+  bloodGroup          String?
+  designation         String
+  department          String
+  employmentType      EmploymentType        @default(FULL_TIME)
+  employmentStatus    EmploymentStatus      @default(ACTIVE)
+  dateOfJoining       DateTime              @default(now())
+  dateOfLeaving       DateTime?
+  reportingManagerId  String?
+  approvalLimit       Float?                @default(0)
+  canApprovePOs       Boolean               @default(false)
+  emergencyContact    String?
+  emergencyName       String?
+  emergencyRelation   String?
+  salary              Float?
+  bankName            String?
+  bankAccountNumber   String?
+  ifscCode            String?
+  panNumber           String?
+  address             String?
+  city                String?
+  state               String?
+  pincode             String?
+  primaryCenterId     String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime
+  createdBy           String?
+  updatedBy           String?
+  centers             centers?              @relation(fields: [primaryCenterId], references: [id])
+  employees           employees?            @relation("employeesToemployees", fields: [reportingManagerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  other_employees     employees[]           @relation("employeesToemployees")
+  users               users                 @relation(fields: [userId], references: [id])
+  batches             batches[]
+  employee_documents  employee_documents[]
+  leave_balances      leave_balances[]
+  leave_applications  leave_applications[]
+  attendance          attendance[]
+  performance_reviews performance_reviews[]
+  employee_training   employee_training[]
+  salary_structures   salary_structures[]
+  payroll             payroll[]
+  employee_assets     employee_assets[]
+  employee_onboarding employee_onboarding[]
+  exit_clearance      exit_clearance?
+
+  @@index([employeeCode])
+  @@index([employmentStatus])
+  @@index([primaryCenterId])
+  @@index([reportingManagerId])
+  @@index([userId])
+}
+
+model enrollments {
+  id               String           @id
+  enrollmentNumber String           @unique
+  studentId        String
+  courseId         String
+  batchId          String?
+  centerId         String
+  status           EnrollmentStatus @default(PENDING)
+  enrollmentDate   DateTime         @default(now())
+  startDate        DateTime?
+  completionDate   DateTime?
+  totalFees        Float
+  paidAmount       Float            @default(0)
+  paymentStatus    PaymentStatus    @default(PENDING)
+  inquiryId        String?          @unique
+  createdById      String
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime
+  assessments      assessments[]
+  batch_students   batch_students[]
+  batches          batches?         @relation(fields: [batchId], references: [id])
+  centers          centers          @relation(fields: [centerId], references: [id])
+  courses          courses          @relation(fields: [courseId], references: [id])
+  users            users            @relation(fields: [createdById], references: [id])
+  inquiries        inquiries?       @relation(fields: [inquiryId], references: [id])
+  students         students         @relation(fields: [studentId], references: [id])
+
+  @@index([centerId])
+  @@index([courseId])
+  @@index([enrollmentNumber])
+  @@index([status])
+  @@index([studentId])
+}
+
+model inquiries {
+  id                                  String          @id
+  inquiryNumber                       String          @unique
+  studentId                           String
+  source                              InquirySource
+  status                              InquiryStatus   @default(NEW)
+  priority                            InquiryPriority @default(MEDIUM)
+  interestedCourses                   String[]
+  centerId                            String
+  createdById                         String
+  assignedToId                        String?
+  followUpDate                        DateTime?
+  enrollmentId                        String?         @unique
+  createdAt                           DateTime        @default(now())
+  updatedAt                           DateTime
+  enrollments                         enrollments?
+  users_inquiries_assignedToIdTousers users?          @relation("inquiries_assignedToIdTousers", fields: [assignedToId], references: [id])
+  centers                             centers         @relation(fields: [centerId], references: [id])
+  users_inquiries_createdByIdTousers  users           @relation("inquiries_createdByIdTousers", fields: [createdById], references: [id])
+  students                            students        @relation(fields: [studentId], references: [id])
+  inquiry_notes                       inquiry_notes[]
+
+  @@index([centerId])
+  @@index([createdAt])
+  @@index([inquiryNumber])
+  @@index([status])
+}
+
+model inquiry_notes {
+  id          String    @id
+  inquiryId   String
+  note        String
+  createdById String
+  createdAt   DateTime  @default(now())
+  inquiries   inquiries @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+
+  @@index([inquiryId])
+}
+
+model interviews {
+  id            String          @id
+  placementId   String
+  round         Int
+  scheduledDate DateTime
+  status        InterviewStatus @default(SCHEDULED)
+  result        InterviewResult @default(PENDING)
+  feedback      String?
+  conductedBy   String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime
+  placements    placements      @relation(fields: [placementId], references: [id], onDelete: Cascade)
+
+  @@index([placementId])
+}
+
+model inventory_consumption {
+  id              String          @id
+  itemId          String
+  centerId        String
+  quantity        Int
+  consumedBy      String?
+  consumedById    String?
+  purpose         String?
+  consumptionDate DateTime        @default(now())
+  unitCost        Float?
+  totalCost       Float?
+  approvedBy      String?
+  approvedAt      DateTime?
+  notes           String?
+  createdAt       DateTime        @default(now())
+  centers         centers         @relation(fields: [centerId], references: [id])
+  inventory_items inventory_items @relation(fields: [itemId], references: [id])
+
+  @@index([centerId])
+  @@index([consumptionDate])
+  @@index([itemId])
+}
+
+model inventory_items {
+  id                      String                  @id
+  itemCode                String                  @unique
+  name                    String
+  description             String?
+  category                ItemCategory
+  brand                   String?
+  model                   String?
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime
+  defaultSupplier         String?
+  estimatedPrice          Float?
+  maintenanceIntervalDays Int?
+  minQuantityPerCenter    Int                     @default(5)
+  specifications          String?
+  warrantyPeriodMonths    Int?
+  uomId                   String?
+  center_inventories      center_inventories[]
+  inventory_consumption   inventory_consumption[]
+  units_of_measure        units_of_measure?       @relation(fields: [uomId], references: [id])
+  inventory_transfers     inventory_transfers[]
+  maintenance_records     maintenance_records[]
+  po_items                po_items[]
+  purchase_items          purchase_items[]
+  user_allocations        user_allocations[]
+
+  @@index([category])
+  @@index([itemCode])
+}
+
+model inventory_transfers {
+  id                                                String          @id
+  itemId                                            String
+  fromCenterId                                      String
+  toCenterId                                        String
+  quantity                                          Int
+  reason                                            String?
+  transferDate                                      DateTime        @default(now())
+  status                                            String          @default("PENDING")
+  initiatedBy                                       String
+  initiatedById                                     String
+  approvedBy                                        String?
+  approvedById                                      String?
+  approvedAt                                        DateTime?
+  receivedBy                                        String?
+  receivedById                                      String?
+  receivedAt                                        DateTime?
+  conditionAtTransfer                               ItemCondition?
+  conditionAtReceipt                                ItemCondition?
+  notes                                             String?
+  createdAt                                         DateTime        @default(now())
+  updatedAt                                         DateTime
+  centers_inventory_transfers_fromCenterIdTocenters centers         @relation("inventory_transfers_fromCenterIdTocenters", fields: [fromCenterId], references: [id])
+  inventory_items                                   inventory_items @relation(fields: [itemId], references: [id])
+  centers_inventory_transfers_toCenterIdTocenters   centers         @relation("inventory_transfers_toCenterIdTocenters", fields: [toCenterId], references: [id])
+
+  @@index([fromCenterId])
+  @@index([itemId])
+  @@index([status])
+  @@index([toCenterId])
+  @@index([transferDate])
+}
+
+model maintenance_records {
+  id              String          @id
+  itemId          String
+  maintenanceType String
+  description     String
+  cost            Float?
+  performedBy     String?
+  maintenanceDate DateTime        @default(now())
+  completedDate   DateTime?
+  status          String          @default("PENDING")
+  notes           String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime
+  inventory_items inventory_items @relation(fields: [itemId], references: [id])
+
+  @@index([itemId])
+  @@index([maintenanceDate])
+}
+
+model placements {
+  id              String          @id
+  placementNumber String          @unique
+  studentId       String
+  companyName     String
+  companyType     CompanyType
+  jobTitle        String
+  jobDescription  String?
+  location        String
+  salary          Float?
+  joiningDate     DateTime?
+  status          PlacementStatus @default(IN_PROGRESS)
+  centerId        String
+  createdById     String
+  offerLetterUrl  String?
+  documents       String[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime
+  placedAt        DateTime?
+  interviews      interviews[]
+  centers         centers         @relation(fields: [centerId], references: [id])
+  users           users           @relation(fields: [createdById], references: [id])
+  students        students        @relation(fields: [studentId], references: [id])
+
+  @@index([centerId])
+  @@index([placementNumber])
+  @@index([status])
+  @@index([studentId])
+}
+
+model po_items {
+  id               String            @id
+  purchaseOrderId  String
+  inventoryItemId  String?
+  itemName         String
+  description      String?
+  specifications   String?
+  quantity         Int
+  unitPrice        Float
+  taxRate          Float             @default(0)
+  discount         Float             @default(0)
+  totalPrice       Float
+  receivedQuantity Int               @default(0)
+  notes            String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime
+  uomId            String?
+  inventory_items  inventory_items?  @relation(fields: [inventoryItemId], references: [id])
+  purchase_orders  purchase_orders   @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  units_of_measure units_of_measure? @relation(fields: [uomId], references: [id])
+
+  @@index([inventoryItemId])
+  @@index([purchaseOrderId])
+}
+
+model po_templates {
+  id               String            @id
+  templateCode     String            @unique
+  name             String
+  description      String?
+  isDefault        Boolean           @default(false)
+  isActive         Boolean           @default(true)
+  paymentTerms     String?
+  deliveryTerms    String?
+  defaultTaxRate   Float             @default(0)
+  includeTax       Boolean           @default(true)
+  termsConditions  String?
+  notes            String?
+  headerText       String?
+  footerText       String?
+  requiresApproval Boolean           @default(true)
+  autoApproveBelow Float?
+  notifyOnCreate   Boolean           @default(true)
+  notifyOnApprove  Boolean           @default(true)
+  notifyEmails     String[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime
+  purchase_orders  purchase_orders[]
+
+  @@index([isActive])
+  @@index([templateCode])
+}
+
+model purchase_items {
+  id                 String           @id
+  purchaseId         String
+  inventoryItemId    String?
+  itemName           String
+  description        String?
+  hsnCode            String?
+  quantity           Float
+  unitPrice          Float
+  cgstRate           Float            @default(0)
+  cgstAmount         Float            @default(0)
+  sgstRate           Float            @default(0)
+  sgstAmount         Float            @default(0)
+  igstRate           Float            @default(0)
+  igstAmount         Float            @default(0)
+  discount           Float            @default(0)
+  totalPrice         Float
+  ocrMatchConfidence Float?
+  isManualEntry      Boolean          @default(false)
+  inventoryUpdated   Boolean          @default(false)
+  updatedAt          DateTime?
+  notes              String?
+  createdAt          DateTime         @default(now())
+  inventory_items    inventory_items? @relation(fields: [inventoryItemId], references: [id])
+  purchases          purchases        @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+
+  @@index([inventoryItemId])
+  @@index([purchaseId])
+}
+
+model purchase_orders {
+  id                                        String        @id
+  poNumber                                  String        @unique
+  vendorId                                  String
+  centerId                                  String
+  status                                    POStatus      @default(DRAFT)
+  priority                                  POPriority    @default(MEDIUM)
+  orderDate                                 DateTime      @default(now())
+  expectedDeliveryDate                      DateTime?
+  actualDeliveryDate                        DateTime?
+  subtotal                                  Float         @default(0)
+  taxAmount                                 Float         @default(0)
+  shippingCost                              Float         @default(0)
+  discount                                  Float         @default(0)
+  totalAmount                               Float         @default(0)
+  paymentTerms                              String?
+  paymentStatus                             String?
+  createdById                               String
+  approvedById                              String?
+  approvedAt                                DateTime?
+  rejectedById                              String?
+  rejectedAt                                DateTime?
+  rejectionReason                           String?
+  deliveryAddress                           String?
+  deliveryContact                           String?
+  notes                                     String?
+  termsConditions                           String?
+  attachments                               String[]
+  createdAt                                 DateTime      @default(now())
+  updatedAt                                 DateTime
+  templateId                                String?
+  approvalHistory                           Json[]        @default([])
+  approvalLevel                             Int           @default(0)
+  requiresApproval                          Boolean       @default(true)
+  po_items                                  po_items[]
+  users_purchase_orders_approvedByIdTousers users?        @relation("purchase_orders_approvedByIdTousers", fields: [approvedById], references: [id])
+  centers                                   centers       @relation(fields: [centerId], references: [id])
+  users_purchase_orders_createdByIdTousers  users         @relation("purchase_orders_createdByIdTousers", fields: [createdById], references: [id])
+  users_purchase_orders_rejectedByIdTousers users?        @relation("purchase_orders_rejectedByIdTousers", fields: [rejectedById], references: [id])
+  po_templates                              po_templates? @relation(fields: [templateId], references: [id])
+  vendors                                   vendors       @relation(fields: [vendorId], references: [id])
+
+  @@index([centerId])
+  @@index([createdById])
+  @@index([poNumber])
+  @@index([status])
+  @@index([vendorId])
+}
+
+model purchases {
+  id                                  String           @id
+  purchaseNumber                      String           @unique
+  vendorId                            String
+  centerId                            String
+  billNumber                          String?
+  billDate                            DateTime?
+  billImageUrl                        String?
+  ocrRawText                          String?
+  ocrConfidence                       Float?
+  ocrProcessedAt                      DateTime?
+  ocrMetadata                         Json?
+  status                              PurchaseStatus   @default(DRAFT)
+  isOcrProcessed                      Boolean          @default(false)
+  isVerified                          Boolean          @default(false)
+  subtotal                            Float            @default(0)
+  cgst                                Float            @default(0)
+  sgst                                Float            @default(0)
+  igst                                Float            @default(0)
+  otherCharges                        Float            @default(0)
+  discount                            Float            @default(0)
+  totalAmount                         Float            @default(0)
+  paymentMethod                       String?
+  paymentStatus                       String?
+  paidAmount                          Float?           @default(0)
+  dueAmount                           Float?           @default(0)
+  paymentDate                         DateTime?
+  referenceNumber                     String?
+  poId                                String?
+  createdById                         String
+  verifiedById                        String?
+  verifiedAt                          DateTime?
+  approvedById                        String?
+  approvedAt                          DateTime?
+  postedAt                            DateTime?
+  notes                               String?
+  createdAt                           DateTime         @default(now())
+  updatedAt                           DateTime
+  purchase_items                      purchase_items[]
+  users_purchases_approvedByIdTousers users?           @relation("purchases_approvedByIdTousers", fields: [approvedById], references: [id])
+  centers                             centers          @relation(fields: [centerId], references: [id])
+  users_purchases_createdByIdTousers  users            @relation("purchases_createdByIdTousers", fields: [createdById], references: [id])
+  vendors                             vendors          @relation(fields: [vendorId], references: [id])
+  users_purchases_verifiedByIdTousers users?           @relation("purchases_verifiedByIdTousers", fields: [verifiedById], references: [id])
+
+  @@index([billDate])
+  @@index([centerId])
+  @@index([createdById])
+  @@index([purchaseNumber])
+  @@index([status])
+  @@index([vendorId])
+}
+
+model students {
+  id               String           @id
+  userId           String           @unique
+  studentId        String           @unique
+  dateOfBirth      DateTime
+  gender           Gender
+  fatherName       String?
+  motherName       String?
+  address          String
+  city             String
+  state            String
+  pincode          String
+  qualification    String
+  university       String?
+  yearOfPassing    Int?
+  percentage       Float?
+  status           StudentStatus    @default(INQUIRY)
+  centerId         String
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime
+  aadharNumber     String?
+  bloodGroup       String?
+  emergencyContact String?
+  guardianPhone    String?
+  assessments      assessments[]
+  enrollments      enrollments[]
+  inquiries        inquiries[]
+  placements       placements[]
+  batch_students   batch_students[]
+  centers          centers          @relation(fields: [centerId], references: [id])
+  users            users            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([centerId])
+  @@index([status])
+  @@index([studentId])
+}
+
+model batches {
+  id                String           @id
+  batchCode         String           @unique
+  batchName         String
+  courseId          String
+  centerId          String
+  instructorId      String?
+  startDate         DateTime
+  endDate           DateTime?
+  capacity          Int              @default(30)
+  currentStrength   Int              @default(0)
+  status            BatchStatus      @default(UPCOMING)
+  timing            String?
+  days              String?
+  description       String?
+  isActive          Boolean          @default(true)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime
+  createdBy         String?
+  updatedBy         String?
+  centers           centers          @relation(fields: [centerId], references: [id])
+  courses           courses          @relation(fields: [courseId], references: [id])
+  employees         employees?       @relation(fields: [instructorId], references: [id])
+  batch_students    batch_students[]
+  enrollments       enrollments[]
+
+  @@index([batchCode])
+  @@index([centerId])
+  @@index([courseId])
+  @@index([instructorId])
+  @@index([status])
+  @@index([startDate])
+}
+
+model batch_students {
+  id           String           @id
+  batchId      String
+  studentId    String
+  enrollmentId String?
+  joinedDate   DateTime         @default(now())
+  status       BatchStudentStatus @default(ACTIVE)
+  attendance   Float?           @default(0)
+  performance  String?
+  remarks      String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime
+  batches      batches          @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  enrollments  enrollments?     @relation(fields: [enrollmentId], references: [id])
+  students     students         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([batchId, studentId])
+  @@index([batchId])
+  @@index([enrollmentId])
+  @@index([status])
+  @@index([studentId])
+}
+
+model system_list_items {
+  id           String       @id
+  listId       String
+  code         String
+  label        String
+  description  String?
+  color        String?
+  icon         String?
+  sortOrder    Int          @default(0)
+  isDefault    Boolean      @default(false)
+  isActive     Boolean      @default(true)
+  isSystem     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime
+  createdBy    String?
+  updatedBy    String?
+  system_lists system_lists @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  @@unique([listId, code])
+  @@index([listId])
+  @@index([sortOrder])
+}
+
+model system_lists {
+  id                String              @id
+  code              String              @unique
+  name              String
+  description       String?
+  category          SystemListCategory
+  isSystem          Boolean             @default(true)
+  isActive          Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime
+  createdBy         String?
+  updatedBy         String?
+  system_list_items system_list_items[]
+
+  @@index([category])
+  @@index([code])
+}
+
+model units_of_measure {
+  id               String            @id
+  code             String            @unique
+  name             String
+  abbreviation     String
+  type             UOMType
+  description      String?
+  baseUnit         String?
+  conversionFactor Float?
+  isActive         Boolean           @default(true)
+  isDefault        Boolean           @default(false)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime
+  inventory_items  inventory_items[]
+  po_items         po_items[]
+
+  @@index([code])
+  @@index([isActive])
+  @@index([type])
+}
+
+model user_allocations {
+  id                 String          @id
+  itemId             String
+  centerId           String
+  allocatedTo        String
+  allocatedToId      String?
+  purpose            String?
+  quantity           Int             @default(1)
+  allocatedDate      DateTime        @default(now())
+  expectedReturnDate DateTime?
+  actualReturnDate   DateTime?
+  isReturned         Boolean         @default(false)
+  returnCondition    ItemCondition?
+  notes              String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime
+  centers            centers         @relation(fields: [centerId], references: [id])
+  inventory_items    inventory_items @relation(fields: [itemId], references: [id])
+
+  @@index([centerId])
+  @@index([isReturned])
+  @@index([itemId])
+}
+
+model users {
+  id                                                  String            @id
+  email                                               String            @unique
+  password                                            String
+  firstName                                           String
+  lastName                                            String
+  phone                                               String?
+  role                                                UserRole
+  status                                              UserStatus        @default(ACTIVE)
+  centerId                                            String?
+  createdAt                                           DateTime          @default(now())
+  updatedAt                                           DateTime
+  lastLogin                                           DateTime?
+  employees                                           employees?
+  enrollments                                         enrollments[]
+  inquiries_inquiries_assignedToIdTousers             inquiries[]       @relation("inquiries_assignedToIdTousers")
+  inquiries_inquiries_createdByIdTousers              inquiries[]       @relation("inquiries_createdByIdTousers")
+  placements                                          placements[]
+  purchase_orders_purchase_orders_approvedByIdTousers purchase_orders[] @relation("purchase_orders_approvedByIdTousers")
+  purchase_orders_purchase_orders_createdByIdTousers  purchase_orders[] @relation("purchase_orders_createdByIdTousers")
+  purchase_orders_purchase_orders_rejectedByIdTousers purchase_orders[] @relation("purchase_orders_rejectedByIdTousers")
+  purchases_purchases_approvedByIdTousers             purchases[]       @relation("purchases_approvedByIdTousers")
+  purchases_purchases_createdByIdTousers              purchases[]       @relation("purchases_createdByIdTousers")
+  purchases_purchases_verifiedByIdTousers             purchases[]       @relation("purchases_verifiedByIdTousers")
+  students                                            students?
+  centers                                             centers?          @relation(fields: [centerId], references: [id])
+
+  @@index([centerId])
+  @@index([email])
+  @@index([role])
+}
+
+model vendors {
+  id                String            @id
+  vendorCode        String            @unique
+  name              String
+  contactPerson     String?
+  email             String?
+  phone             String?
+  address           String?
+  city              String?
+  state             String?
+  pincode           String?
+  bankName          String?
+  ifscCode          String?
+  status            VendorStatus      @default(ACTIVE)
+  rating            Float             @default(0)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime
+  bankAccountNumber String?
+  gstin             String?
+  isActive          Boolean           @default(true)
+  pan               String?
+  purchase_orders   purchase_orders[]
+  purchases         purchases[]
+
+  @@index([status])
+  @@index([vendorCode])
+}
+
+// ============================================
+// HR & EMPLOYEE LIFECYCLE MANAGEMENT MODELS
+// ============================================
+
+model employee_documents {
+  id           String       @id
+  employeeId   String
+  documentType DocumentType
+  documentName String
+  documentUrl  String
+  issuedDate   DateTime?
+  expiryDate   DateTime?
+  isVerified   Boolean      @default(false)
+  verifiedBy   String?
+  verifiedDate DateTime?
+  notes        String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime
+  employees    employees    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@index([documentType])
+}
+
+model leave_types {
+  id                 String               @id
+  name               String               @unique
+  code               String               @unique
+  description        String?
+  maxDaysPerYear     Int                  @default(0)
+  carryForward       Boolean              @default(false)
+  maxCarryForward    Int                  @default(0)
+  requiresApproval   Boolean              @default(true)
+  isPaid             Boolean              @default(true)
+  isActive           Boolean              @default(true)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime
+  leave_applications leave_applications[]
+  leave_balances     leave_balances[]
+
+  @@index([isActive])
+}
+
+model leave_balances {
+  id           String      @id
+  employeeId   String
+  leaveTypeId  String
+  year         Int
+  opening      Float       @default(0)
+  earned       Float       @default(0)
+  taken        Float       @default(0)
+  balance      Float       @default(0)
+  carryForward Float       @default(0)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime
+  employees    employees   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leave_types  leave_types @relation(fields: [leaveTypeId], references: [id])
+
+  @@unique([employeeId, leaveTypeId, year])
+  @@index([employeeId])
+  @@index([year])
+}
+
+model leave_applications {
+  id              String      @id
+  applicationCode String      @unique
+  employeeId      String
+  leaveTypeId     String
+  startDate       DateTime
+  endDate         DateTime
+  days            Float
+  reason          String
+  status          LeaveStatus @default(PENDING)
+  appliedDate     DateTime    @default(now())
+  approvedBy      String?
+  approvedDate    DateTime?
+  rejectedBy      String?
+  rejectedDate    DateTime?
+  rejectionReason String?
+  cancelledDate   DateTime?
+  cancelReason    String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime
+  employees       employees   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leave_types     leave_types @relation(fields: [leaveTypeId], references: [id])
+
+  @@index([employeeId])
+  @@index([status])
+  @@index([startDate])
+}
+
+model attendance {
+  id         String           @id
+  employeeId String
+  date       DateTime
+  checkIn    DateTime?
+  checkOut   DateTime?
+  status     AttendanceStatus @default(PRESENT)
+  workHours  Float?
+  lateBy     Int?
+  earlyLeave Boolean          @default(false)
+  overtime   Float?
+  remarks    String?
+  location   String?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime
+  employees  employees        @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, date])
+  @@index([employeeId])
+  @@index([date])
+  @@index([status])
+}
+
+model performance_reviews {
+  id                 String       @id
+  employeeId         String
+  reviewerId         String
+  reviewPeriodStart  DateTime
+  reviewPeriodEnd    DateTime
+  overallRating      Float?
+  technicalSkills    Float?
+  communication      Float?
+  teamwork           Float?
+  punctuality        Float?
+  initiative         Float?
+  goals              Json?
+  achievements       String?
+  areasOfImprovement String?
+  managerComments    String?
+  employeeComments   String?
+  status             ReviewStatus @default(DRAFT)
+  submittedDate      DateTime?
+  reviewedDate       DateTime?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime
+  employees          employees    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@index([reviewerId])
+  @@index([status])
+}
+
+model training_programs {
+  id                  String              @id
+  title               String
+  description         String?
+  trainer             String?
+  duration            Int
+  durationType        String              @default("hours")
+  startDate           DateTime
+  endDate             DateTime
+  location            String?
+  maxParticipants     Int?
+  currentParticipants Int                 @default(0)
+  cost                Float?
+  status              TrainingStatus      @default(SCHEDULED)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime
+  employee_training   employee_training[]
+
+  @@index([startDate])
+  @@index([status])
+}
+
+model employee_training {
+  id                String                   @id
+  employeeId        String
+  trainingId        String
+  enrolledDate      DateTime                 @default(now())
+  status            TrainingEnrollmentStatus @default(ENROLLED)
+  completedDate     DateTime?
+  certificateUrl    String?
+  feedback          String?
+  rating            Float?
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime
+  employees         employees                @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  training_programs training_programs        @relation(fields: [trainingId], references: [id])
+
+  @@unique([employeeId, trainingId])
+  @@index([employeeId])
+  @@index([trainingId])
+  @@index([status])
+}
+
+model salary_components {
+  id                 String              @id
+  name               String              @unique
+  code               String              @unique
+  type               ComponentType
+  isFixed            Boolean             @default(true)
+  isTaxable          Boolean             @default(true)
+  calculationFormula String?
+  displayOrder       Int                 @default(0)
+  isActive           Boolean             @default(true)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime
+  salary_structures  salary_structures[]
+
+  @@index([type])
+  @@index([isActive])
+}
+
+model salary_structures {
+  id                String            @id
+  employeeId        String
+  componentId       String
+  amount            Float
+  effectiveFrom     DateTime
+  effectiveTo       DateTime?
+  isActive          Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime
+  employees         employees         @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  salary_components salary_components @relation(fields: [componentId], references: [id])
+
+  @@index([employeeId])
+  @@index([componentId])
+  @@index([effectiveFrom])
+}
+
+model payroll {
+  id               String        @id
+  payrollNumber    String        @unique
+  employeeId       String
+  month            Int
+  year             Int
+  basicSalary      Float
+  allowances       Float         @default(0)
+  deductions       Float         @default(0)
+  grossSalary      Float
+  netSalary        Float
+  taxDeducted      Float         @default(0)
+  pfDeduction      Float         @default(0)
+  esiDeduction     Float         @default(0)
+  otherDeductions  Float         @default(0)
+  reimbursements   Float         @default(0)
+  status           PayrollStatus @default(DRAFT)
+  paymentDate      DateTime?
+  paymentMode      String?
+  paymentReference String?
+  remarks          String?
+  generatedBy      String?
+  approvedBy       String?
+  approvedDate     DateTime?
+  components       Json?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime
+  employees        employees     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, month, year])
+  @@index([employeeId])
+  @@index([month, year])
+  @@index([status])
+}
+
+model employee_assets {
+  id           String      @id
+  employeeId   String
+  assetType    String
+  assetName    String
+  assetCode    String?     @unique
+  serialNumber String?
+  assignedDate DateTime    @default(now())
+  returnedDate DateTime?
+  condition    String      @default("GOOD")
+  status       AssetStatus @default(ASSIGNED)
+  value        Float?
+  remarks      String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime
+  employees    employees   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@index([status])
+}
+
+model onboarding_tasks {
+  id                  String                @id
+  title               String
+  description         String?
+  category            String
+  assignedTo          String?
+  dueInDays           Int                   @default(7)
+  isRequired          Boolean               @default(true)
+  displayOrder        Int                   @default(0)
+  isActive            Boolean               @default(true)
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime
+  employee_onboarding employee_onboarding[]
+
+  @@index([category])
+  @@index([isActive])
+}
+
+model employee_onboarding {
+  id               String           @id
+  employeeId       String
+  taskId           String
+  status           TaskStatus       @default(PENDING)
+  assignedTo       String?
+  dueDate          DateTime?
+  completedDate    DateTime?
+  completedBy      String?
+  remarks          String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime
+  employees        employees        @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  onboarding_tasks onboarding_tasks @relation(fields: [taskId], references: [id])
+
+  @@unique([employeeId, taskId])
+  @@index([employeeId])
+  @@index([status])
+}
+
+model exit_clearance {
+  id                 String     @id
+  employeeId         String     @unique
+  resignationDate    DateTime
+  lastWorkingDate    DateTime
+  reason             String?
+  exitType           ExitType   @default(RESIGNATION)
+  status             ExitStatus @default(INITIATED)
+  assetsReturned     Boolean    @default(false)
+  documentsReturned  Boolean    @default(false)
+  noDuesCleared      Boolean    @default(false)
+  exitInterviewDone  Boolean    @default(false)
+  finalSettlement    Float?
+  settledDate        DateTime?
+  rehireEligible     Boolean    @default(true)
+  remarks            String?
+  exitInterviewNotes String?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime
+  employees          employees  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([lastWorkingDate])
+}
+
+// ============================================
+// BUDGET & FINANCIAL PLANNING MODELS
+// ============================================
+
+model budget_periods {
+  id              String              @id
+  periodName      String              @unique
+  periodType      BudgetPeriodType    @default(ANNUAL)
+  fiscalYear      Int
+  startDate       DateTime
+  endDate         DateTime
+  quarter         String?
+  month           String?
+  description     String?
+  status          BudgetStatus        @default(DRAFT)
+  isActive        Boolean             @default(true)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime
+  createdBy       String
+  budgets         budgets[]
+  budget_versions budget_versions[]
+
+  @@index([fiscalYear])
+  @@index([status])
+  @@index([isActive])
+  @@index([periodType])
+}
+
+model cost_centers {
+  id              String    @id
+  centerCode      String    @unique
+  centerName      String
+  description     String?
+  parentCenterId  String?
+  centerId        String?
+  departmentId    String?
+  managerId       String?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime
+  centers         centers?  @relation(fields: [centerId], references: [id])
+  budgets         budgets[]
+
+  @@index([centerCode])
+  @@index([isActive])
+}
+
+model budgets {
+  id                   String                 @id
+  budgetNumber         String                 @unique
+  budgetName           String
+  periodId             String
+  costCenterId         String?
+  accountId            String
+  budgetType           BudgetType             @default(ANNUAL)
+  totalAmount          Float
+  allocatedAmount      Float                  @default(0)
+  committedAmount      Float                  @default(0)
+  actualAmount         Float                  @default(0)
+  variance             Float                  @default(0)
+  variancePercent      Float                  @default(0)
+  status               BudgetStatus           @default(DRAFT)
+  approvalLevel        Int                    @default(0)
+  approvedBy           String?
+  approvedDate         DateTime?
+  notes                String?
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime
+  createdBy            String
+  budget_periods       budget_periods         @relation(fields: [periodId], references: [id])
+  cost_centers         cost_centers?          @relation(fields: [costCenterId], references: [id])
+  chart_of_accounts    chart_of_accounts      @relation(fields: [accountId], references: [id])
+  budget_allocations   budget_allocations[]
+  budget_transactions  budget_transactions[]
+  budget_approvals     budget_approvals[]
+
+  @@index([budgetNumber])
+  @@index([periodId])
+  @@index([costCenterId])
+  @@index([accountId])
+  @@index([status])
+  @@index([budgetType])
+}
+
+model budget_allocations {
+  id              String   @id
+  budgetId        String
+  month           Int
+  year            Int
+  allocatedAmount Float
+  actualAmount    Float    @default(0)
+  variance        Float    @default(0)
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime
+  budgets         budgets  @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+
+  @@unique([budgetId, month, year])
+  @@index([budgetId])
+  @@index([month, year])
+}
+
+model budget_transactions {
+  id              String              @id
+  budgetId        String
+  transactionDate DateTime
+  transactionType BudgetTransactionType
+  accountId       String
+  amount          Float
+  description     String?
+  referenceType   String?
+  referenceId     String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime
+  createdBy       String
+  budgets         budgets             @relation(fields: [budgetId], references: [id])
+  chart_of_accounts chart_of_accounts @relation(fields: [accountId], references: [id])
+
+  @@index([budgetId])
+  @@index([transactionDate])
+  @@index([transactionType])
+  @@index([accountId])
+}
+
+model budget_versions {
+  id              String         @id
+  periodId        String
+  versionNumber   Int
+  versionName     String
+  description     String?
+  isActive        Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  createdBy       String
+  budget_periods  budget_periods @relation(fields: [periodId], references: [id])
+
+  @@unique([periodId, versionNumber])
+  @@index([periodId])
+  @@index([isActive])
+}
+
+model budget_approvals {
+  id              String         @id
+  budgetId        String
+  approvalLevel   Int
+  approverRole    String
+  approverId      String?
+  status          ApprovalStatus @default(PENDING)
+  comments        String?
+  approvedDate    DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime
+  budgets         budgets        @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+
+  @@index([budgetId])
+  @@index([status])
+  @@index([approvalLevel])
+}
+
+model budget_alerts {
+  id              String          @id
+  budgetId        String?
+  alertType       BudgetAlertType
+  threshold       Float
+  currentValue    Float
+  message         String
+  severity        AlertSeverity   @default(WARNING)
+  isRead          Boolean         @default(false)
+  notifiedUsers   String[]
+  createdAt       DateTime        @default(now())
+
+  @@index([isRead])
+  @@index([alertType])
+  @@index([severity])
+}
+
+// ============================================
+// WORKFLOW AUTOMATION MODELS
+// ============================================
+
+model api_connections {
+  id                String        @id
+  name              String
+  provider          ApiProvider
+  apiKey            String?
+  apiSecret         String?
+  accessToken       String?
+  refreshToken      String?
+  webhookUrl        String?
+  config            Json?
+  status            ConnectionStatus @default(ACTIVE)
+  lastSynced        DateTime?
+  isActive          Boolean       @default(true)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime
+  createdBy         String
+  workflows         workflows[]
+  workflow_steps    workflow_steps[]
+  workflow_logs     workflow_logs[]
+
+  @@index([provider])
+  @@index([status])
+  @@index([isActive])
+}
+
+model workflows {
+  id                String              @id
+  name              String
+  description       String?
+  trigger           WorkflowTrigger
+  triggerConfig     Json?
+  status            WorkflowStatus      @default(DRAFT)
+  isActive          Boolean             @default(false)
+  connectionId      String?
+  lastRun           DateTime?
+  totalRuns         Int                 @default(0)
+  successRuns       Int                 @default(0)
+  failedRuns        Int                 @default(0)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime
+  createdBy         String
+  api_connections   api_connections?    @relation(fields: [connectionId], references: [id])
+  workflow_steps    workflow_steps[]
+  workflow_executions workflow_executions[]
+
+  @@index([trigger])
+  @@index([status])
+  @@index([isActive])
+  @@index([createdBy])
+}
+
+model workflow_steps {
+  id                String              @id
+  workflowId        String
+  stepOrder         Int
+  stepType          WorkflowStepType
+  action            String
+  connectionId      String?
+  config            Json?
+  conditions        Json?
+  isActive          Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime
+  workflows         workflows           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  api_connections   api_connections?    @relation(fields: [connectionId], references: [id])
+  workflow_logs     workflow_logs[]
+
+  @@index([workflowId])
+  @@index([stepOrder])
+  @@index([stepType])
+}
+
+model workflow_executions {
+  id                String            @id
+  workflowId        String
+  status            ExecutionStatus   @default(RUNNING)
+  triggerData       Json?
+  startedAt         DateTime          @default(now())
+  completedAt       DateTime?
+  duration          Int?
+  errorMessage      String?
+  workflows         workflows         @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  workflow_logs     workflow_logs[]
+
+  @@index([workflowId])
+  @@index([status])
+  @@index([startedAt])
+}
+
+model workflow_logs {
+  id                String              @id
+  executionId       String
+  stepId            String?
+  connectionId      String?
+  logLevel          LogLevel            @default(INFO)
+  message           String
+  data              Json?
+  timestamp         DateTime            @default(now())
+  workflow_executions workflow_executions @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  workflow_steps    workflow_steps?     @relation(fields: [stepId], references: [id])
+  api_connections   api_connections?    @relation(fields: [connectionId], references: [id])
+
+  @@index([executionId])
+  @@index([stepId])
+  @@index([logLevel])
+  @@index([timestamp])
+}
+
+model workflow_templates {
+  id                String   @id
+  name              String
+  description       String?
+  category          String
+  provider          ApiProvider?
+  templateConfig    Json
+  isPublic          Boolean  @default(true)
+  usageCount        Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime
+
+  @@index([category])
+  @@index([provider])
+  @@index([isPublic])
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  CENTER_DIRECTOR
+  TRAINER
+  PLACEMENT_OFFICER
+  COUNSELOR
+  STUDENT
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum AccountCategory {
+  CURRENT_ASSETS
+  FIXED_ASSETS
+  INTANGIBLE_ASSETS
+  INVESTMENTS
+  OTHER_ASSETS
+  CURRENT_LIABILITIES
+  NON_CURRENT_LIABILITIES
+  PROVISIONS
+  SHARE_CAPITAL
+  RESERVES_AND_SURPLUS
+  RETAINED_EARNINGS
+  OPERATING_INCOME
+  NON_OPERATING_INCOME
+  OTHER_INCOME
+  DIRECT_EXPENSES
+  INDIRECT_EXPENSES
+  OPERATING_EXPENSES
+  FINANCIAL_EXPENSES
+  DEPRECIATION_AMORTIZATION
+  TAX_EXPENSES
+}
+
+enum AccountSubCategory {
+  CASH_AND_BANK
+  ACCOUNTS_RECEIVABLE
+  INVENTORY
+  PREPAID_EXPENSES
+  SHORT_TERM_INVESTMENTS
+  ADVANCE_TO_SUPPLIERS
+  LAND_AND_BUILDING
+  PLANT_AND_MACHINERY
+  FURNITURE_AND_FIXTURES
+  VEHICLES
+  COMPUTER_EQUIPMENT
+  OFFICE_EQUIPMENT
+  LEASEHOLD_IMPROVEMENTS
+  GOODWILL
+  PATENTS
+  TRADEMARKS
+  SOFTWARE
+  LICENSES
+  COPYRIGHTS
+  LONG_TERM_INVESTMENTS
+  EQUITY_INVESTMENTS
+  DEBT_INVESTMENTS
+  MUTUAL_FUNDS
+  ACCOUNTS_PAYABLE
+  SHORT_TERM_LOANS
+  OUTSTANDING_EXPENSES
+  PROVISIONS_CURRENT
+  TAX_PAYABLE
+  ADVANCE_FROM_CUSTOMERS
+  SALARY_PAYABLE
+  LONG_TERM_LOANS
+  BONDS_PAYABLE
+  DEFERRED_TAX_LIABILITY
+  MORTGAGE_PAYABLE
+  PROVISION_FOR_GRATUITY
+  PROVISION_FOR_LEAVE
+  PROVISION_FOR_WARRANTY
+  PROVISION_FOR_BONUS
+  EQUITY_SHARE_CAPITAL
+  PREFERENCE_SHARE_CAPITAL
+  SHARE_APPLICATION_MONEY
+  CAPITAL_RESERVE
+  SECURITIES_PREMIUM
+  GENERAL_RESERVE
+  REVALUATION_RESERVE
+  PROFIT_AND_LOSS_ACCOUNT
+  SALES_REVENUE
+  SERVICE_REVENUE
+  COURSE_FEES
+  PLACEMENT_FEES
+  CONSULTING_INCOME
+  TRAINING_INCOME
+  EXAMINATION_FEES
+  INTEREST_INCOME
+  DIVIDEND_INCOME
+  RENTAL_INCOME
+  CAPITAL_GAINS
+  FOREIGN_EXCHANGE_GAIN
+  MISCELLANEOUS_INCOME
+  COST_OF_GOODS_SOLD
+  RAW_MATERIALS
+  DIRECT_LABOR
+  TRAINING_MATERIALS
+  COURSE_MATERIALS
+  SALARIES_AND_WAGES
+  RENT
+  UTILITIES
+  INSURANCE
+  REPAIRS_AND_MAINTENANCE
+  OFFICE_SUPPLIES
+  TRAVEL_AND_CONVEYANCE
+  PROFESSIONAL_FEES
+  MARKETING_AND_ADVERTISING
+  COMMUNICATION
+  PRINTING_AND_STATIONERY
+  LEGAL_FEES
+  AUDIT_FEES
+  ADMINISTRATIVE_EXPENSES
+  SELLING_EXPENSES
+  DISTRIBUTION_EXPENSES
+  GENERAL_EXPENSES
+  INTEREST_EXPENSE
+  BANK_CHARGES
+  LOAN_PROCESSING_FEES
+  FOREIGN_EXCHANGE_LOSS
+  DEPRECIATION
+  AMORTIZATION
+  INCOME_TAX
+  GST_PAYABLE
+  TDS_PAYABLE
+  TCS_PAYABLE
+  PROFESSIONAL_TAX
+  OTHER_TAXES
+}
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  INCOME
+  EXPENSE
+}
+
+enum AssessmentStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  GRADED
+}
+
+enum AssessmentType {
+  QUIZ
+  ASSIGNMENT
+  PRACTICAL
+  THEORY
+  FINAL
+  PROJECT
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+}
+
+enum CenterStatus {
+  ACTIVE
+  INACTIVE
+  UNDER_MAINTENANCE
+}
+
+enum CompanyType {
+  STARTUP
+  SME
+  MNC
+  GOVERNMENT
+  NGO
+}
+
+enum CourseDifficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum CourseStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum EmploymentStatus {
+  ACTIVE
+  ON_LEAVE
+  RESIGNED
+  TERMINATED
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERN
+}
+
+enum EnrollmentStatus {
+  PENDING
+  APPROVED
+  ACTIVE
+  COMPLETED
+  DROPPED
+  SUSPENDED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum InquiryPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum InquirySource {
+  WALK_IN
+  PHONE
+  EMAIL
+  WEBSITE
+  SOCIAL_MEDIA
+  REFERRAL
+  MOBILE_APP
+}
+
+enum InquiryStatus {
+  NEW
+  CONTACTED
+  INTERESTED
+  NOT_INTERESTED
+  ENROLLED
+  LOST
+  FOLLOW_UP
+  QUALIFIED
+  CONVERTED
+}
+
+enum InterviewResult {
+  SELECTED
+  REJECTED
+  ON_HOLD
+  PENDING
+}
+
+enum InterviewStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  RESCHEDULED
+}
+
+enum ItemCategory {
+  COMPUTER
+  FURNITURE
+  STATIONERY
+  LAB_EQUIPMENT
+  ELECTRONICS
+  BOOKS
+  SOFTWARE
+  OTHER
+}
+
+enum ItemCondition {
+  NEW
+  GOOD
+  FAIR
+  POOR
+  DAMAGED
+  UNDER_REPAIR
+}
+
+enum ItemStatus {
+  AVAILABLE
+  IN_USE
+  RESERVED
+  MAINTENANCE
+  RETIRED
+}
+
+enum POPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum POStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  SENT_TO_VENDOR
+  PARTIALLY_RECEIVED
+  FULLY_RECEIVED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PARTIAL
+  PAID
+  REFUNDED
+}
+
+enum PlacementStatus {
+  IN_PROGRESS
+  PLACED
+  NOT_PLACED
+  NOT_INTERESTED
+  ON_HOLD
+}
+
+enum PurchaseStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  POSTED
+  CANCELLED
+}
+
+enum StudentStatus {
+  INQUIRY
+  ENROLLED
+  ACTIVE
+  COMPLETED
+  DROPPED
+  PLACED
+}
+
+enum BatchStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+  CANCELLED
+  ON_HOLD
+}
+
+enum BatchStudentStatus {
+  ACTIVE
+  COMPLETED
+  DROPPED
+  TRANSFERRED
+}
+
+enum SystemListCategory {
+  STUDENT_LIFECYCLE
+  PROCUREMENT
+  INVENTORY
+  FINANCE
+  SYSTEM
+  OTHER
+}
+
+enum UOMType {
+  QUANTITY
+  LENGTH
+  WEIGHT
+  VOLUME
+  AREA
+  TIME
+  DIGITAL
+  OTHER
+}
+
+enum VendorStatus {
+  ACTIVE
+  INACTIVE
+  BLACKLISTED
+}
+
+// ============================================
+// HR & EMPLOYEE LIFECYCLE ENUMS
+// ============================================
+
+enum DocumentType {
+  AADHAR
+  PAN
+  PASSPORT
+  DRIVING_LICENSE
+  VOTER_ID
+  DEGREE_CERTIFICATE
+  EXPERIENCE_LETTER
+  OFFER_LETTER
+  JOINING_LETTER
+  SALARY_SLIP
+  BANK_STATEMENT
+  ADDRESS_PROOF
+  PHOTO
+  RESUME
+  OTHER
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  WITHDRAWN
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  HALF_DAY
+  LATE
+  ON_LEAVE
+  WEEKEND
+  HOLIDAY
+  WORK_FROM_HOME
+}
+
+enum ReviewStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  COMPLETED
+  ARCHIVED
+}
+
+enum TrainingStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  POSTPONED
+}
+
+enum TrainingEnrollmentStatus {
+  ENROLLED
+  IN_PROGRESS
+  COMPLETED
+  DROPPED
+  FAILED
+}
+
+enum ComponentType {
+  EARNING
+  DEDUCTION
+  REIMBURSEMENT
+}
+
+enum PayrollStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  PROCESSED
+  PAID
+  FAILED
+}
+
+enum AssetStatus {
+  ASSIGNED
+  RETURNED
+  DAMAGED
+  LOST
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+}
+
+enum ExitType {
+  RESIGNATION
+  TERMINATION
+  RETIREMENT
+  ABSCONDING
+  END_OF_CONTRACT
+}
+
+enum ExitStatus {
+  INITIATED
+  PENDING_CLEARANCE
+  CLEARANCE_IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+// ============================================
+// BUDGET & FINANCIAL PLANNING ENUMS
+// ============================================
+
+enum BudgetType {
+  ANNUAL
+  QUARTERLY
+  MONTHLY
+  PROJECT_BASED
+  DEPARTMENTAL
+}
+
+enum BudgetPeriodType {
+  ANNUAL
+  SEMI_ANNUAL
+  QUARTERLY
+  MONTHLY
+}
+
+enum BudgetStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  ACTIVE
+  CLOSED
+  REJECTED
+  REVISED
+}
+
+enum BudgetTransactionType {
+  ALLOCATION
+  COMMITMENT
+  ACTUAL_EXPENSE
+  ADJUSTMENT
+  TRANSFER
+  RELEASE
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
+enum BudgetAlertType {
+  THRESHOLD_EXCEEDED
+  BUDGET_EXHAUSTED
+  VARIANCE_HIGH
+  APPROACHING_LIMIT
+  OVER_BUDGET
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+// ============================================
+// WORKFLOW AUTOMATION ENUMS
+// ============================================
+
+enum ApiProvider {
+  WHATSAPP
+  META
+  FACEBOOK
+  INSTAGRAM
+  GOOGLE
+  GMAIL
+  GOOGLE_SHEETS
+  GOOGLE_CALENDAR
+  GOOGLE_DRIVE
+  SLACK
+  TELEGRAM
+  TWILIO
+  SENDGRID
+  MAILCHIMP
+  CUSTOM
+}
+
+enum ConnectionStatus {
+  ACTIVE
+  INACTIVE
+  ERROR
+  EXPIRED
+}
+
+enum WorkflowTrigger {
+  MANUAL
+  SCHEDULE
+  WEBHOOK
+  NEW_STUDENT
+  NEW_INQUIRY
+  NEW_ENROLLMENT
+  PAYMENT_RECEIVED
+  BUDGET_ALERT
+  FORM_SUBMISSION
+  API_EVENT
+}
+
+enum WorkflowStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum WorkflowStepType {
+  TRIGGER
+  ACTION
+  CONDITION
+  DELAY
+  LOOP
+}
+
+enum ExecutionStatus {
+  RUNNING
+  SUCCESS
+  FAILED
+  CANCELLED
+  TIMEOUT
+}
+
+enum LogLevel {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+}
