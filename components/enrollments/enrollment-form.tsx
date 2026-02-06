@@ -41,7 +41,7 @@ type FormValues = z.infer<typeof formSchema>
 interface EnrollmentFormProps {
   students: Array<{ id: string; studentId: string; users: { firstName: string; lastName: string } }>
   courses: Array<{ id: string; name: string; code: string; fees: number }>
-  batches: Array<{ id: string; name: string; code: string }>
+  batches: Array<{ id: string; name: string; code: string; startDate?: string | Date }>
   centers: Array<{ id: string; name: string; code: string }>
 }
 
@@ -192,7 +192,7 @@ export function EnrollmentForm({ students, courses, batches, centers }: Enrollme
                   <SelectContent>
                     {batches.map((batch) => (
                       <SelectItem key={batch.id} value={batch.id}>
-                        {batch.code} - {new Date(batch.startDate).toLocaleDateString('en-IN')}
+                        {batch.code}{batch.startDate ? ` - ${new Date(batch.startDate).toLocaleDateString('en-IN')}` : ''}
                       </SelectItem>
                     ))}
                   </SelectContent>

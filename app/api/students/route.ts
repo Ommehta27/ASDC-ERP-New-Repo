@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma"
 import { requireAuth } from "@/lib/session"
 import { hasPermission } from "@/lib/permissions"
 import bcrypt from "bcryptjs"
+import { randomUUID } from "crypto"
 
 export async function GET(request: NextRequest) {
   try {
@@ -126,6 +127,7 @@ export async function POST(request: NextRequest) {
     // Create user first
     const newUser = await prisma.users.create({
       data: {
+        id: randomUUID(),
         email,
         password: hashedPassword,
         firstName,
@@ -133,12 +135,14 @@ export async function POST(request: NextRequest) {
         phone,
         role: "STUDENT",
         status: "ACTIVE",
+        updatedAt: new Date(),
       },
     })
 
     // Create student
     const newStudent = await prisma.students.create({
       data: {
+        id: randomUUID(),
         userId: newUser.id,
         studentId,
         dateOfBirth: new Date(dateOfBirth),
@@ -159,6 +163,7 @@ export async function POST(request: NextRequest) {
         percentage: percentage ? parseFloat(percentage) : undefined,
         centerId,
         status: "ENROLLED",
+        updatedAt: new Date(),
       },
       include: {
         users: true,

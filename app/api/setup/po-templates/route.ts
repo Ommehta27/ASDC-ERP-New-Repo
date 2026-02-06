@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { requireAuth } from "@/lib/session"
 import { hasPermission } from "@/lib/permissions"
+import { randomUUID } from "crypto"
 
 export async function GET() {
   try {
@@ -65,6 +66,7 @@ export async function POST(request: NextRequest) {
     // Create PO template
     const newTemplate = await prisma.po_templates.create({
       data: {
+        id: randomUUID(),
         templateCode,
         name,
         description,
@@ -83,6 +85,7 @@ export async function POST(request: NextRequest) {
         notifyOnCreate: body.notifyOnCreate !== false,
         notifyOnApprove: body.notifyOnApprove !== false,
         notifyEmails: body.notifyEmails || [],
+        updatedAt: new Date(),
       },
     })
 

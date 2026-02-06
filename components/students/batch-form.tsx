@@ -35,7 +35,7 @@ const formSchema = z.object({
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().optional(),
   capacity: z.string().min(1, "Capacity is required"),
-  status: z.enum(["UPCOMING", "ONGOING", "COMPLETED", "CANCELLED", "ON_HOLD"]).default("UPCOMING"),
+  status: z.enum(["UPCOMING", "ONGOING", "COMPLETED", "CANCELLED", "ON_HOLD"]),
   timing: z.string().optional(),
   days: z.string().optional(),
   description: z.string().optional(),

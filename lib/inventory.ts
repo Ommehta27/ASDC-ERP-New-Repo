@@ -50,7 +50,7 @@ export async function addToUnallocated(params: {
   itemId: string
   quantity: number
   purchasePrice?: number
-  condition?: "NEW" | "GOOD" | "FAIR" | "POOR"
+  condition?: "NEW" | "GOOD" | "FAIR" | "POOR" | "DAMAGED" | "UNDER_REPAIR"
   location?: string
   purchaseDate?: Date
   serialNumbers?: string[]

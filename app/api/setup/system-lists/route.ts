@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { requireAuth } from "@/lib/session"
 import { hasPermission } from "@/lib/permissions"
+import { randomUUID } from "crypto"
 
 export async function GET(request: NextRequest) {
   try {
@@ -64,6 +65,7 @@ export async function POST(request: NextRequest) {
     // Create system list with items
     const newList = await prisma.system_lists.create({
       data: {
+        id: randomUUID(),
         code,
         name,
         description,
@@ -71,8 +73,10 @@ export async function POST(request: NextRequest) {
         isSystem: false,
         isActive: true,
         createdBy: user.id,
+        updatedAt: new Date(),
         system_list_items: {
           create: items?.map((item: any, index: number) => ({
+            id: randomUUID(),
             code: item.code,
             label: item.label,
             description: item.description,
@@ -82,6 +86,7 @@ export async function POST(request: NextRequest) {
             isActive: true,
             isSystem: false,
             createdBy: user.id,
+            updatedAt: new Date(),
           })) || [],
         },
       },

@@ -42,8 +42,8 @@ const formSchema = z.object({
   employeeCode: z.string().min(1, "Employee code is required"),
   designation: z.string().min(1, "Designation is required"),
   department: z.string().min(1, "Department is required"),
-  employmentType: z.enum(["FULL_TIME", "PART_TIME", "CONTRACT", "INTERN"]).default("FULL_TIME"),
-  employmentStatus: z.enum(["ACTIVE", "INACTIVE", "ON_LEAVE", "TERMINATED"]).default("ACTIVE"),
+  employmentType: z.enum(["FULL_TIME", "PART_TIME", "CONTRACT", "INTERN"]),
+  employmentStatus: z.enum(["ACTIVE", "INACTIVE", "ON_LEAVE", "TERMINATED"]),
   dateOfJoining: z.string(),
   dateOfBirth: z.string().optional(),
   gender: z.string().optional(),
@@ -52,8 +52,8 @@ const formSchema = z.object({
   // Reporting & Approvals
   reportingManagerId: z.string().optional(),
   primaryCenterId: z.string().optional(),
-  approvalLimit: z.string().default("0"),
-  canApprovePOs: z.boolean().default(false),
+  approvalLimit: z.string(),
+  canApprovePOs: z.boolean(),
   
   // Emergency Contact
   emergencyName: z.string().optional(),

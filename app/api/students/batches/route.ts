@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { requireAuth } from "@/lib/session"
 import { hasPermission } from "@/lib/permissions"
+import { randomUUID } from "crypto"
 
 export async function GET(request: NextRequest) {
   try {
@@ -92,6 +93,7 @@ export async function POST(request: NextRequest) {
     // Create batch
     const newBatch = await prisma.batches.create({
       data: {
+        id: randomUUID(),
         batchCode: body.batchCode,
         batchName: body.batchName,
         courseId: body.courseId,
@@ -105,6 +107,7 @@ export async function POST(request: NextRequest) {
         days: body.days,
         description: body.description,
         createdBy: user.id,
+        updatedAt: new Date(),
       },
       include: {
         courses: true,

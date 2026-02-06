@@ -109,6 +109,7 @@ async function main() {
       create: {
         id: crypto.randomUUID(),
         ...uom,
+        type: uom.type as "QUANTITY" | "LENGTH" | "WEIGHT" | "VOLUME" | "AREA",
         isActive: true,
         updatedAt: new Date(),
       },
@@ -450,19 +451,22 @@ async function main() {
 
       batches.push({
         id: uuidv4(),
-        code: `BATCH-${course.code}-${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}`,
+        batchCode: `BATCH-${course.code}-${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}`,
+        batchName: `Batch ${i + 1} - ${course.code}`,
         courseId: course.id,
+        centerId: course.centerId || "",
         startDate,
         endDate,
-        maxCapacity: 30,
+        capacity: 30,
         currentStrength: 0,
+        status: "UPCOMING" as "UPCOMING" | "ONGOING" | "COMPLETED" | "CANCELLED" | "ON_HOLD",
         updatedAt: new Date(),
       })
     }
 
     for (const batch of batches) {
       await prisma.batches.upsert({
-        where: { code: batch.code },
+        where: { batchCode: batch.batchCode },
         update: {},
         create: batch,
       })

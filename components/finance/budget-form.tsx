@@ -36,6 +36,7 @@ interface ChartOfAccount {
   id: string
   accountCode: string
   accountName: string
+  isActive?: boolean
 }
 
 export function BudgetForm() {
@@ -76,7 +77,7 @@ export function BudgetForm() {
         const accountsResponse = await fetch("/api/finance/chart-of-accounts")
         if (accountsResponse.ok) {
           const accountsData = await accountsResponse.json()
-          setChartOfAccounts(accountsData.filter((a: ChartOfAccount) => a.isActive))
+          setChartOfAccounts(accountsData.filter((a: ChartOfAccount) => a.isActive !== false))
         }
       } catch (error) {
         console.error("Error fetching data:", error)

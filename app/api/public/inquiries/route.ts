@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
+import { randomUUID } from "crypto"
 
 export async function POST(request: NextRequest) {
   try {
@@ -62,6 +63,7 @@ export async function POST(request: NextRequest) {
     // Create user
     const newUser = await prisma.users.create({
       data: {
+        id: randomUUID(),
         email,
         password: "", // Will be set when converted to enrolled student
         firstName,
@@ -69,12 +71,14 @@ export async function POST(request: NextRequest) {
         phone,
         role: "STUDENT",
         status: "ACTIVE",
+        updatedAt: new Date(),
       },
     })
 
     // Create student record with INQUIRY status
     const newStudent = await prisma.students.create({
       data: {
+        id: randomUUID(),
         userId: newUser.id,
         studentId,
         dateOfBirth: new Date(dateOfBirth),
@@ -86,12 +90,14 @@ export async function POST(request: NextRequest) {
         qualification: qualification || "",
         centerId: defaultCenter.id,
         status: "INQUIRY",
+        updatedAt: new Date(),
       },
     })
 
     // Create inquiry
     const newInquiry = await prisma.inquiries.create({
       data: {
+        id: randomUUID(),
         inquiryNumber,
         studentId: newStudent.id,
         source: "WEBSITE",
@@ -100,6 +106,7 @@ export async function POST(request: NextRequest) {
         interestedCourses: interestedCourses || [],
         centerId: defaultCenter.id,
         createdById: newUser.id, // Self-created
+        updatedAt: new Date(),
       },
     })
 

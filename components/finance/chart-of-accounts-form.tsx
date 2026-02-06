@@ -51,33 +51,33 @@ const formSchema = z.object({
   description: z.string().optional(),
   
   // GST Configuration
-  gstApplicable: z.boolean().default(false),
+  gstApplicable: z.boolean(),
   gstRate: z.string().optional(),
   hsnSacCode: z.string().optional(),
   
   // TDS Configuration
-  tdsApplicable: z.boolean().default(false),
+  tdsApplicable: z.boolean(),
   tdsSection: z.string().optional(),
   tdsRate: z.string().optional(),
   
   // TCS Configuration
-  tcsApplicable: z.boolean().default(false),
+  tcsApplicable: z.boolean(),
   tcsSection: z.string().optional(),
   tcsRate: z.string().optional(),
   
   // Opening Balance
-  openingBalance: z.string().default("0"),
-  openingBalanceType: z.enum(["DEBIT", "CREDIT"]).default("DEBIT"),
+  openingBalance: z.string(),
+  openingBalanceType: z.enum(["DEBIT", "CREDIT"]),
   
   // Budget
   budgetAmount: z.string().optional(),
   budgetPeriod: z.string().optional(),
   
   // Account Controls
-  isControlAccount: z.boolean().default(false),
-  allowPosting: z.boolean().default(true),
-  requiresReconciliation: z.boolean().default(false),
-  isActive: z.boolean().default(true),
+  isControlAccount: z.boolean(),
+  allowPosting: z.boolean(),
+  requiresReconciliation: z.boolean(),
+  isActive: z.boolean(),
 })
 
 type FormValues = z.infer<typeof formSchema>
@@ -200,13 +200,13 @@ export function ChartOfAccountsForm({ initialData }: ChartOfAccountsFormProps) {
       accountSubCategory: initialData?.accountSubCategory || undefined,
       parentAccountId: initialData?.parentAccountId || undefined,
       description: initialData?.description || "",
-      gstApplicable: initialData?.gstApplicable || false,
+      gstApplicable: initialData?.gstApplicable ?? false,
       gstRate: initialData?.gstRate?.toString() || undefined,
       hsnSacCode: initialData?.hsnSacCode || undefined,
-      tdsApplicable: initialData?.tdsApplicable || false,
+      tdsApplicable: initialData?.tdsApplicable ?? false,
       tdsSection: initialData?.tdsSection || undefined,
       tdsRate: initialData?.tdsRate?.toString() || undefined,
-      tcsApplicable: initialData?.tcsApplicable || false,
+      tcsApplicable: initialData?.tcsApplicable ?? false,
       tcsSection: initialData?.tcsSection || undefined,
       tcsRate: initialData?.tcsRate?.toString() || undefined,
       openingBalance: initialData?.openingBalance?.toString() || "0",

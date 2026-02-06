@@ -34,7 +34,7 @@ const formSchema = z.object({
   lastName: z.string().min(1, "Last name is required"),
   phone: z.string().optional(),
   dateOfBirth: z.string().min(1, "Date of birth is required"),
-  gender: z.enum(["MALE", "FEMALE", "OTHER"], { required_error: "Gender is required" }),
+  gender: z.enum(["MALE", "FEMALE", "OTHER"], { message: "Gender is required" }),
   fatherName: z.string().optional(),
   motherName: z.string().optional(),
   guardianPhone: z.string().optional(),

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { requireAuth } from "@/lib/session"
 import { hasPermission } from "@/lib/permissions"
+import { randomUUID } from "crypto"
 
 export async function GET() {
   try {
@@ -52,6 +53,7 @@ export async function POST(request: NextRequest) {
     // Create UOM
     const newUOM = await prisma.units_of_measure.create({
       data: {
+        id: randomUUID(),
         code,
         name,
         abbreviation,
@@ -60,6 +62,7 @@ export async function POST(request: NextRequest) {
         baseUnit,
         conversionFactor: conversionFactor ? parseFloat(conversionFactor) : undefined,
         isActive: true,
+        updatedAt: new Date(),
       },
     })
 

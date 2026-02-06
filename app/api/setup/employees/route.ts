@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { requireAuth } from "@/lib/session"
 import { hasPermission } from "@/lib/permissions"
+import { randomUUID } from "crypto"
 
 export async function GET(request: NextRequest) {
   try {
@@ -79,6 +80,7 @@ export async function POST(request: NextRequest) {
     // Create employee
     const newEmployee = await prisma.employees.create({
       data: {
+        id: randomUUID(),
         userId,
         employeeCode,
         designation,
@@ -89,6 +91,7 @@ export async function POST(request: NextRequest) {
         primaryCenterId,
         salary: salary ? parseFloat(salary) : undefined,
         createdBy: user.id,
+        updatedAt: new Date(),
       },
       include: {
         users: true,
