@@ -1,6 +1,7 @@
 "use client"
 
 import { useSession, signOut } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { LogOut, Building2 } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -18,6 +19,7 @@ interface CompanyInfo {
 export function Header({ className }: HeaderProps) {
   const { data } = useSession()
   const user = data?.user
+  const router = useRouter()
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null)
 
   useEffect(() => {
@@ -45,7 +47,11 @@ export function Header({ className }: HeaderProps) {
           </span>
         )}
         <button
-          onClick={() => signOut({ callbackUrl: "/auth/login" })}
+          onClick={async () => {
+            await signOut({ redirect: false })
+            router.push("/auth/login")
+            router.refresh()
+          }}
           className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs hover:bg-accent"
         >
           <LogOut className="h-3 w-3" />

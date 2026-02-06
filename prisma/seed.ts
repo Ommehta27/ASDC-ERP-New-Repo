@@ -580,7 +580,52 @@ async function main() {
   })
   console.log(`✅ Central Warehouse created: ${centralWarehouse.name}`)
 
+  // Seed Default Admin Users
+  console.log("👤 Seeding default admin users...")
+  const hashedPassword = await bcrypt.hash("admin123", 10)
+  
+  // Create admin@asdc.com
+  const adminUser1 = await prisma.users.upsert({
+    where: { email: "admin@asdc.com" },
+    update: {},
+    create: {
+      id: uuidv4(),
+      email: "admin@asdc.com",
+      password: hashedPassword,
+      firstName: "Admin",
+      lastName: "User",
+      phone: "+91 9876543210",
+      role: "SUPER_ADMIN",
+      status: "ACTIVE",
+      updatedAt: new Date(),
+    },
+  })
+  console.log(`✅ Admin user created: ${adminUser1.email}`)
+
+  // Create admin@skillerp.com
+  const adminUser2 = await prisma.users.upsert({
+    where: { email: "admin@skillerp.com" },
+    update: {},
+    create: {
+      id: uuidv4(),
+      email: "admin@skillerp.com",
+      password: hashedPassword,
+      firstName: "Admin",
+      lastName: "User",
+      phone: "+91 9876543210",
+      role: "SUPER_ADMIN",
+      status: "ACTIVE",
+      updatedAt: new Date(),
+    },
+  })
+  console.log(`✅ Admin user created: ${adminUser2.email}`)
+
   console.log("🎉 Database seed completed successfully!")
+  console.log("\n📋 Default Login Credentials:")
+  console.log("   Email: admin@asdc.com")
+  console.log("   Password: admin123")
+  console.log("\n   Email: admin@skillerp.com")
+  console.log("   Password: admin123")
 }
 
 main()
