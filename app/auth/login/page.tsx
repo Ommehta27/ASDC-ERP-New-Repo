@@ -33,7 +33,16 @@ function LoginForm() {
 
       if (result?.error) {
         console.error("Login error:", result.error)
-        toast.error(result.error === "CredentialsSignin" ? "Invalid email or password" : "Login failed. Please try again.")
+        
+        // Handle specific error types
+        if (result.error === "Configuration") {
+          toast.error("Server configuration error. Please contact administrator.")
+          console.error("⚠️  AUTH_SECRET or NEXTAUTH_SECRET is missing in environment variables!")
+        } else if (result.error === "CredentialsSignin") {
+          toast.error("Invalid email or password")
+        } else {
+          toast.error(`Login failed: ${result.error}`)
+        }
       } else if (result?.ok) {
         router.push(callbackUrl)
         router.refresh()

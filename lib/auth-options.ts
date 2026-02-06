@@ -3,8 +3,16 @@ import Credentials from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 import prisma from "@/lib/prisma"
 
+// Validate that AUTH_SECRET is set
+const authSecret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET
+if (!authSecret) {
+  console.error("⚠️  AUTH_SECRET or NEXTAUTH_SECRET is not set! Authentication will not work.")
+  console.error("   Generate one using: openssl rand -base64 32")
+}
+
 export const authOptions: NextAuthConfig = {
   trustHost: true, // Required for Vercel deployment
+  secret: authSecret, // Explicitly set the secret
   session: {
     strategy: "jwt",
   },
