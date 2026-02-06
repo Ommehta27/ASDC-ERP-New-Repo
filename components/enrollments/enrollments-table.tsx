@@ -75,8 +75,9 @@ export function EnrollmentsTable() {
 
   const statusColors: Record<string, string> = {
     PENDING: "bg-yellow-500",
+    APPROVED: "bg-blue-500",
     ACTIVE: "bg-green-500",
-    COMPLETED: "bg-blue-500",
+    COMPLETED: "bg-purple-500",
     DROPPED: "bg-red-500",
     SUSPENDED: "bg-gray-500",
   }
@@ -85,7 +86,7 @@ export function EnrollmentsTable() {
     PENDING: "bg-yellow-500",
     PARTIAL: "bg-orange-500",
     PAID: "bg-green-500",
-    OVERDUE: "bg-red-500",
+    REFUNDED: "bg-gray-500",
   }
 
   if (loading) {

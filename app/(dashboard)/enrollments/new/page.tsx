@@ -54,7 +54,8 @@ export default async function AddEnrollmentPage() {
     prisma.batches.findMany({
       select: {
         id: true,
-        code: true,
+        batchCode: true,
+        batchName: true,
         startDate: true,
         endDate: true,
       },
@@ -85,7 +86,12 @@ export default async function AddEnrollmentPage() {
           Fill in the details to create a new enrollment record.
         </p>
       </div>
-      <EnrollmentForm students={students} courses={courses} batches={batches} centers={centers} />
+      <EnrollmentForm 
+        students={students} 
+        courses={courses} 
+        batches={batches.map(b => ({ id: b.id, name: b.batchName, code: b.batchCode }))} 
+        centers={centers} 
+      />
     </div>
   )
 }

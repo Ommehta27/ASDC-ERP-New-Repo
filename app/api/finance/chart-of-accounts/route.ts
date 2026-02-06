@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
     // Create account
     const newAccount = await prisma.chart_of_accounts.create({
       data: {
+        id: crypto.randomUUID(),
         accountCode: body.accountCode,
         accountName: body.accountName,
         accountType: body.accountType,
@@ -111,6 +112,7 @@ export async function POST(request: NextRequest) {
         requiresReconciliation: body.requiresReconciliation || false,
         
         createdBy: user.id,
+        updatedAt: new Date(),
       },
     })
 

@@ -35,6 +35,7 @@ export default async function CenterDetailPage({ params }: { params: Promise<{ i
               name: true,
               itemCode: true,
               category: true,
+              estimatedPrice: true,
             },
           },
         },
@@ -53,7 +54,10 @@ export default async function CenterDetailPage({ params }: { params: Promise<{ i
   }
 
   // Calculate inventory totals
-  const inventoryTotal = center.center_inventories.reduce((sum, item) => sum + (item.unitCost * item.quantity), 0)
+  const inventoryTotal = center.center_inventories.reduce((sum, item) => {
+    const price = item.purchasePrice || item.inventory_items.estimatedPrice || 0
+    return sum + (price * item.quantity)
+  }, 0)
 
   return (
     <div className="space-y-6">
@@ -195,7 +199,7 @@ export default async function CenterDetailPage({ params }: { params: Promise<{ i
                   <div className="text-right">
                     <div className="font-medium">Qty: {item.quantity}</div>
                     <div className="text-sm text-muted-foreground">
-                      ₹{(item.unitCost * item.quantity).toLocaleString()}
+                      ₹{((item.purchasePrice || item.inventory_items.estimatedPrice || 0) * item.quantity).toLocaleString()}
                     </div>
                   </div>
                 </div>

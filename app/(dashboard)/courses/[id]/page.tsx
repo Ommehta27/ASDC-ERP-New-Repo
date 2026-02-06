@@ -53,11 +53,12 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
       batches: {
         select: {
           id: true,
-          code: true,
+          batchCode: true,
+          batchName: true,
           startDate: true,
           endDate: true,
           currentStrength: true,
-          maxCapacity: true,
+          capacity: true,
         },
         orderBy: {
           startDate: "desc",
@@ -368,7 +369,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                       className="p-3 border rounded-lg space-y-2"
                     >
                       <div className="flex items-center justify-between">
-                        <p className="font-semibold">{batch.code}</p>
+                        <p className="font-semibold">{batch.batchCode}</p>
                         <CheckCircle2 className="h-4 w-4 text-green-500" />
                       </div>
                       <div className="space-y-1 text-sm">
@@ -378,7 +379,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                         <div className="flex items-center gap-2">
                           <Users className="h-3 w-3" />
                           <span>
-                            {batch.currentStrength} / {batch.maxCapacity}
+                            {batch.currentStrength} / {batch.capacity}
                           </span>
                         </div>
                       </div>

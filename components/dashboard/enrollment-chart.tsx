@@ -28,12 +28,13 @@ export async function EnrollmentChart() {
 
   // Calculate totals
   const totalEnrollments = enrollmentStats.reduce((sum, stat) => sum + stat._count.id, 0)
-  const activeEnrollments = enrollmentStats.find(s => s.status === "IN_PROGRESS")?._count.id || 0
+  const activeEnrollments = enrollmentStats.find(s => s.status === "ACTIVE")?._count.id || 0
   const completedEnrollments = enrollmentStats.find(s => s.status === "COMPLETED")?._count.id || 0
 
   const statusColors: Record<string, string> = {
-    ENROLLED: "#3B82F6",
-    IN_PROGRESS: "#10B981",
+    PENDING: "#6B7280",
+    APPROVED: "#3B82F6",
+    ACTIVE: "#10B981",
     COMPLETED: "#8B5CF6",
     DROPPED: "#EF4444",
     SUSPENDED: "#F59E0B",

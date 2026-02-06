@@ -197,10 +197,7 @@ export async function DELETE(
     // Check if account has transactions
     const hasTransactions = await prisma.budget_transactions.count({
       where: {
-        OR: [
-          { debitAccountId: id },
-          { creditAccountId: id },
-        ],
+        accountId: id,
       },
     })
 

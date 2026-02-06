@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Edit, Trash2 } from "lucide-react"
 import Link from "next/link"
+import { toast } from "sonner"
 
 interface CostCenter {
   id: string
@@ -23,11 +24,43 @@ export function CostCentersTable() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // This will be replaced with actual API call
-    setLoading(false)
-    // Placeholder data
-    setCostCenters([])
+    fetchCostCenters()
   }, [])
+
+  const fetchCostCenters = async () => {
+    try {
+      const res = await fetch("/api/finance/cost-centers")
+      const data = await res.json()
+      setCostCenters(data)
+    } catch (error) {
+      console.error("Error fetching cost centers:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete cost center "${name}"?`)) {
+      return
+    }
+
+    try {
+      const res = await fetch(`/api/finance/cost-centers/${id}`, {
+        method: "DELETE",
+      })
+
+      if (res.ok) {
+        toast.success("Cost center deleted successfully")
+        fetchCostCenters()
+      } else {
+        const error = await res.json()
+        toast.error(error.error || "Failed to delete cost center")
+      }
+    } catch (error) {
+      console.error("Error deleting cost center:", error)
+      toast.error("Failed to delete cost center")
+    }
+  }
 
   if (loading) {
     return <div>Loading...</div>
@@ -71,7 +104,11 @@ export function CostCentersTable() {
                       <Edit className="h-4 w-4" />
                     </Button>
                   </Link>
-                  <Button variant="ghost" size="sm">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDelete(center.id, center.centerName)}
+                  >
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 </div>

@@ -33,6 +33,7 @@ export const authOptions: NextAuthConfig = {
           firstName: user.firstName,
           lastName: user.lastName,
           role: user.role,
+          centerId: user.centerId || null,
         }
       },
     }),
@@ -44,6 +45,7 @@ export const authOptions: NextAuthConfig = {
         token.role = (user as any).role
         token.firstName = (user as any).firstName
         token.lastName = (user as any).lastName
+        token.centerId = (user as any).centerId || null
       }
       return token
     },
@@ -53,6 +55,7 @@ export const authOptions: NextAuthConfig = {
         session.user.role = token.role as any
         session.user.firstName = token.firstName as string
         session.user.lastName = token.lastName as string
+        session.user.centerId = (token.centerId as string) || null
       }
       return session
     },

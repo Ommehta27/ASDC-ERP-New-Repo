@@ -354,31 +354,49 @@ model enrollments {
 }
 
 model inquiries {
-  id                                  String          @id
-  inquiryNumber                       String          @unique
+  id                                  String               @id
+  inquiryNumber                       String               @unique
   studentId                           String
   source                              InquirySource
-  status                              InquiryStatus   @default(NEW)
-  priority                            InquiryPriority @default(MEDIUM)
+  status                              InquiryStatus        @default(NEW)
+  priority                            InquiryPriority      @default(MEDIUM)
   interestedCourses                   String[]
   centerId                            String
   createdById                         String
   assignedToId                        String?
   followUpDate                        DateTime?
-  enrollmentId                        String?         @unique
-  createdAt                           DateTime        @default(now())
+  enrollmentId                        String?              @unique
+  leadScore                           Int                  @default(0)
+  leadTemperature                     LeadTemperature      @default(COLD)
+  conversionProbability               Float?
+  lastContactedAt                     DateTime?
+  totalInteractions                   Int                  @default(0)
+  estimatedValue                      Float?
+  expectedClosureDate                 DateTime?
+  qualificationStatus                 QualificationStatus  @default(UNQUALIFIED)
+  disqualificationReason              String?
+  tags                                String[]
+  customFields                        Json?
+  createdAt                           DateTime             @default(now())
   updatedAt                           DateTime
   enrollments                         enrollments?
-  users_inquiries_assignedToIdTousers users?          @relation("inquiries_assignedToIdTousers", fields: [assignedToId], references: [id])
-  centers                             centers         @relation(fields: [centerId], references: [id])
-  users_inquiries_createdByIdTousers  users           @relation("inquiries_createdByIdTousers", fields: [createdById], references: [id])
-  students                            students        @relation(fields: [studentId], references: [id])
+  users_inquiries_assignedToIdTousers users?               @relation("inquiries_assignedToIdTousers", fields: [assignedToId], references: [id])
+  centers                             centers              @relation(fields: [centerId], references: [id])
+  users_inquiries_createdByIdTousers  users                @relation("inquiries_createdByIdTousers", fields: [createdById], references: [id])
+  students                            students             @relation(fields: [studentId], references: [id])
   inquiry_notes                       inquiry_notes[]
+  inquiry_calls                       inquiry_calls[]
+  inquiry_activities                  inquiry_activities[]
+  inquiry_follow_ups                  inquiry_follow_ups[]
+  lead_scoring_history                lead_scoring_history[]
 
   @@index([centerId])
   @@index([createdAt])
   @@index([inquiryNumber])
   @@index([status])
+  @@index([leadTemperature])
+  @@index([qualificationStatus])
+  @@index([leadScore])
 }
 
 model inquiry_notes {
@@ -390,6 +408,150 @@ model inquiry_notes {
   inquiries   inquiries @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
 
   @@index([inquiryId])
+}
+
+// ============================================
+// CRM & CALL RECORDING MODELS
+// ============================================
+
+model inquiry_calls {
+  id                  String               @id
+  inquiryId           String
+  callType            CallType             @default(OUTBOUND)
+  callStatus          CallStatus           @default(COMPLETED)
+  duration            Int?
+  startTime           DateTime             @default(now())
+  endTime             DateTime?
+  recordingUrl        String?
+  transcriptUrl       String?
+  transcript          String?
+  summary             String?
+  sentiment           CallSentiment?
+  sentimentScore      Float?
+  keyTopics           String[]
+  concerns            String[]
+  objections          String[]
+  commitments         String[]
+  nextSteps           String?
+  callQuality         Int?
+  outcome             CallOutcome?
+  notes               String?
+  aiAnalysis          Json?
+  recordedById        String
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime
+  inquiries           inquiries            @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  call_transcriptions call_transcriptions[]
+
+  @@index([inquiryId])
+  @@index([callType])
+  @@index([callStatus])
+  @@index([startTime])
+  @@index([sentiment])
+}
+
+model call_transcriptions {
+  id            String        @id
+  callId        String
+  speaker       String?
+  text          String
+  startTime     Float?
+  endTime       Float?
+  confidence    Float?
+  sentiment     CallSentiment?
+  keywords      String[]
+  createdAt     DateTime      @default(now())
+  inquiry_calls inquiry_calls @relation(fields: [callId], references: [id], onDelete: Cascade)
+
+  @@index([callId])
+  @@index([startTime])
+}
+
+model inquiry_activities {
+  id                String           @id
+  inquiryId         String
+  activityType      ActivityType
+  title             String
+  description       String?
+  duration          Int?
+  outcome           String?
+  scheduledAt       DateTime?
+  completedAt       DateTime?
+  status            ActivityStatus   @default(PENDING)
+  createdById       String
+  completedById     String?
+  metadata          Json?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime
+  inquiries         inquiries        @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+
+  @@index([inquiryId])
+  @@index([activityType])
+  @@index([status])
+  @@index([scheduledAt])
+}
+
+model inquiry_follow_ups {
+  id               String         @id
+  inquiryId        String
+  followUpType     FollowUpType
+  priority         InquiryPriority @default(MEDIUM)
+  scheduledDate    DateTime
+  completedDate    DateTime?
+  status           FollowUpStatus  @default(PENDING)
+  assignedToId     String?
+  notes            String?
+  outcome          String?
+  nextFollowUpDate DateTime?
+  createdById      String
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime
+  inquiries        inquiries      @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+
+  @@index([inquiryId])
+  @@index([status])
+  @@index([scheduledDate])
+  @@index([assignedToId])
+}
+
+model lead_scoring_history {
+  id               String    @id
+  inquiryId        String
+  score            Int
+  previousScore    Int
+  change           Int
+  reason           String?
+  factors          Json?
+  calculatedAt     DateTime  @default(now())
+  calculatedBy     String?
+  inquiries        inquiries @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+
+  @@index([inquiryId])
+  @@index([calculatedAt])
+}
+
+model crm_analytics {
+  id                     String   @id
+  date                   DateTime @unique @default(now())
+  totalInquiries         Int      @default(0)
+  hotLeads               Int      @default(0)
+  warmLeads              Int      @default(0)
+  coldLeads              Int      @default(0)
+  qualifiedLeads         Int      @default(0)
+  totalCalls             Int      @default(0)
+  totalCallDuration      Int      @default(0)
+  averageCallDuration    Float    @default(0)
+  positiveSentimentCalls Int      @default(0)
+  negativeSentimentCalls Int      @default(0)
+  conversions            Int      @default(0)
+  conversionRate         Float    @default(0)
+  averageLeadScore       Float    @default(0)
+  followUpsCompleted     Int      @default(0)
+  followUpsPending       Int      @default(0)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime
+
+  @@index([date])
 }
 
 model interviews {
@@ -1613,6 +1775,127 @@ model workflow_templates {
   @@index([isPublic])
 }
 
+// ============================================
+// APPROVAL HIERARCHY MODELS
+// ============================================
+
+model approval_hierarchies {
+  id                String                     @id
+  name              String
+  description       String?
+  entityType        ApprovalEntityType
+  isActive          Boolean                    @default(true)
+  isDefault         Boolean                    @default(false)
+  conditions        Json?
+  createdAt         DateTime                   @default(now())
+  updatedAt         DateTime
+  createdBy         String
+  approval_levels   approval_levels[]
+  approval_requests approval_requests[]
+
+  @@index([entityType])
+  @@index([isActive])
+  @@index([isDefault])
+}
+
+model approval_levels {
+  id                  String                @id
+  hierarchyId         String
+  levelNumber         Int
+  levelName           String
+  description         String?
+  approverType        ApproverType
+  approverRole        String?
+  specificApprovers   String[]
+  minApprovals        Int                   @default(1)
+  autoApproveAmount   Float?
+  requiresAll         Boolean               @default(false)
+  timeoutHours        Int?
+  escalationUserId    String?
+  conditions          Json?
+  isActive            Boolean               @default(true)
+  sortOrder           Int                   @default(0)
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime
+  approval_hierarchies approval_hierarchies @relation(fields: [hierarchyId], references: [id], onDelete: Cascade)
+  approval_actions    approval_actions[]
+
+  @@unique([hierarchyId, levelNumber])
+  @@index([hierarchyId])
+  @@index([levelNumber])
+}
+
+model approval_requests {
+  id                   String                @id
+  requestNumber        String                @unique
+  hierarchyId          String
+  entityType           ApprovalEntityType
+  entityId             String
+  requestedById        String
+  requestedByName      String
+  amount               Float?
+  description          String?
+  currentLevel         Int                   @default(1)
+  status               ApprovalRequestStatus @default(PENDING)
+  priority             ApprovalPriority      @default(MEDIUM)
+  metadata             Json?
+  submittedAt          DateTime              @default(now())
+  completedAt          DateTime?
+  expiresAt            DateTime?
+  rejectionReason      String?
+  cancellationReason   String?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime
+  approval_hierarchies approval_hierarchies  @relation(fields: [hierarchyId], references: [id])
+  approval_actions     approval_actions[]
+
+  @@index([requestNumber])
+  @@index([hierarchyId])
+  @@index([entityType])
+  @@index([entityId])
+  @@index([status])
+  @@index([requestedById])
+  @@index([submittedAt])
+}
+
+model approval_actions {
+  id                String                @id
+  requestId         String
+  levelId           String
+  levelNumber       Int
+  approverId        String
+  approverName      String
+  action            ApprovalActionType
+  comments          String?
+  actionDate        DateTime              @default(now())
+  ipAddress         String?
+  metadata          Json?
+  approval_requests approval_requests     @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  approval_levels   approval_levels       @relation(fields: [levelId], references: [id])
+
+  @@index([requestId])
+  @@index([levelId])
+  @@index([approverId])
+  @@index([action])
+  @@index([actionDate])
+}
+
+model approval_templates {
+  id          String             @id
+  name        String
+  description String?
+  entityType  ApprovalEntityType
+  config      Json
+  isPublic    Boolean            @default(false)
+  usageCount  Int                @default(0)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime
+  createdBy   String
+
+  @@index([entityType])
+  @@index([isPublic])
+}
+
 enum UserRole {
   SUPER_ADMIN
   CENTER_DIRECTOR
@@ -2235,4 +2518,161 @@ enum LogLevel {
   INFO
   WARN
   ERROR
+}
+
+// ============================================
+// APPROVAL HIERARCHY ENUMS
+// ============================================
+
+enum ApprovalEntityType {
+  PURCHASE_ORDER
+  BUDGET
+  BUDGET_PERIOD
+  PURCHASE
+  EXPENSE
+  PAYMENT
+  TRANSFER
+  LEAVE_APPLICATION
+  EMPLOYEE_ONBOARDING
+  SALARY_REVISION
+  ASSET_ALLOCATION
+  INVENTORY_TRANSFER
+  VENDOR_CREATION
+  CUSTOM
+}
+
+enum ApproverType {
+  ROLE_BASED
+  SPECIFIC_USERS
+  REPORTING_MANAGER
+  DEPARTMENT_HEAD
+  CENTER_DIRECTOR
+  FINANCE_TEAM
+  HR_TEAM
+  CUSTOM
+}
+
+enum ApprovalRequestStatus {
+  PENDING
+  IN_PROGRESS
+  APPROVED
+  REJECTED
+  CANCELLED
+  EXPIRED
+  ESCALATED
+}
+
+enum ApprovalPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ApprovalActionType {
+  APPROVED
+  REJECTED
+  RETURNED
+  ESCALATED
+  DELEGATED
+  CANCELLED
+}
+
+// ============================================
+// CRM & LEAD MANAGEMENT ENUMS
+// ============================================
+
+enum LeadTemperature {
+  HOT
+  WARM
+  COLD
+}
+
+enum QualificationStatus {
+  UNQUALIFIED
+  MARKETING_QUALIFIED
+  SALES_QUALIFIED
+  DISQUALIFIED
+}
+
+enum CallType {
+  INBOUND
+  OUTBOUND
+  MISSED
+  VOICEMAIL
+}
+
+enum CallStatus {
+  SCHEDULED
+  RINGING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  MISSED
+  CANCELLED
+  VOICEMAIL
+}
+
+enum CallSentiment {
+  VERY_POSITIVE
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+  VERY_NEGATIVE
+}
+
+enum CallOutcome {
+  SUCCESSFUL
+  NO_ANSWER
+  BUSY
+  CALL_BACK_REQUESTED
+  NOT_INTERESTED
+  INTERESTED
+  CONVERTED
+  FOLLOW_UP_SCHEDULED
+  VOICEMAIL_LEFT
+  WRONG_NUMBER
+}
+
+enum ActivityType {
+  CALL
+  EMAIL
+  MEETING
+  SMS
+  WHATSAPP
+  DEMO
+  SITE_VISIT
+  DOCUMENT_SENT
+  PRESENTATION
+  PROPOSAL_SENT
+  NEGOTIATION
+  OTHER
+}
+
+enum ActivityStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  RESCHEDULED
+}
+
+enum FollowUpType {
+  CALL
+  EMAIL
+  SMS
+  WHATSAPP
+  MEETING
+  VISIT
+  DEMO
+  OTHER
+}
+
+enum FollowUpStatus {
+  PENDING
+  SCHEDULED
+  COMPLETED
+  OVERDUE
+  CANCELLED
+  RESCHEDULED
 }

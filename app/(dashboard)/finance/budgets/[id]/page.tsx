@@ -140,10 +140,10 @@ export default async function BudgetDetailPage({ params }: { params: Promise<{ i
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {formatCurrency(budget.availableAmount)}
+              {formatCurrency(budget.totalAmount - budget.actualAmount)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {((budget.availableAmount / budget.totalAmount) * 100).toFixed(1)}% remaining
+              {((budget.totalAmount - budget.actualAmount) / budget.totalAmount * 100).toFixed(1)}% remaining
             </p>
           </CardContent>
         </Card>
@@ -224,7 +224,7 @@ export default async function BudgetDetailPage({ params }: { params: Promise<{ i
               </div>
               <div className="flex justify-between text-sm border-t pt-2">
                 <span className="font-medium">Available Balance</span>
-                <span className="font-bold text-green-600">{formatCurrency(budget.availableAmount)}</span>
+                <span className="font-bold text-green-600">{formatCurrency(budget.totalAmount - budget.actualAmount)}</span>
               </div>
             </div>
           </CardContent>

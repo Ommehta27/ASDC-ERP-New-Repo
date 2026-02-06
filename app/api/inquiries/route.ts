@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { requireAuth } from "@/lib/session"
 import { hasPermission } from "@/lib/permissions"
+import { randomUUID } from "crypto"
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,6 +17,7 @@ export async function GET(request: NextRequest) {
     const centerId = searchParams.get("centerId")
     const search = searchParams.get("search")
     const limit = searchParams.get("limit")
+    const temperature = searchParams.get("temperature")
 
     const where: any = {
       status: {
@@ -25,6 +27,7 @@ export async function GET(request: NextRequest) {
 
     if (status) where.status = status
     if (centerId) where.centerId = centerId
+    if (temperature) where.leadTemperature = temperature
     if (search) {
       where.OR = [
         { inquiryNumber: { contains: search, mode: "insensitive" } },
@@ -72,9 +75,10 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: [
+        { leadScore: "desc" },
+        { createdAt: "desc" },
+      ],
       take: limit ? parseInt(limit) : undefined,
     })
 
@@ -144,6 +148,7 @@ export async function POST(request: NextRequest) {
     // Create user first (for inquiry stage)
     const newUser = await prisma.users.create({
       data: {
+        id: randomUUID(),
         email,
         password: "", // Will be set when converted to student
         firstName,
@@ -151,12 +156,14 @@ export async function POST(request: NextRequest) {
         phone,
         role: "STUDENT",
         status: "ACTIVE",
+        updatedAt: new Date(),
       },
     })
 
     // Create student record with INQUIRY status
     const newStudent = await prisma.students.create({
       data: {
+        id: randomUUID(),
         userId: newUser.id,
         studentId,
         dateOfBirth: new Date(dateOfBirth),
@@ -168,20 +175,27 @@ export async function POST(request: NextRequest) {
         qualification: qualification || "",
         centerId,
         status: "INQUIRY",
+        updatedAt: new Date(),
       },
     })
 
-    // Create inquiry
+    // Create inquiry with CRM fields initialized
     const newInquiry = await prisma.inquiries.create({
       data: {
+        id: randomUUID(),
         inquiryNumber,
         studentId: newStudent.id,
-        source: source || "DIRECT",
+        source: source || "WALK_IN",
         status: "NEW",
         priority: "MEDIUM",
         interestedCourses: interestedCourses || [],
         centerId,
         createdById: user.id,
+        leadScore: 20, // Initial score
+        leadTemperature: "COLD", // Initial temperature
+        qualificationStatus: "UNQUALIFIED",
+        totalInteractions: 0,
+        updatedAt: new Date(),
       },
       include: {
         students: {

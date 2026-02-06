@@ -53,6 +53,14 @@ export type Permission =
   | "delete_accounts"
   | "view_setup"
   | "manage_setup"
+  | "view_approval_hierarchies"
+  | "create_approval_hierarchies"
+  | "edit_approval_hierarchies"
+  | "delete_approval_hierarchies"
+  | "view_approval_requests"
+  | "create_approval_requests"
+  | "approve_requests"
+  | "reject_requests"
   | "view_employees"
   | "create_employees"
   | "edit_employees"
@@ -117,6 +125,25 @@ export type Permission =
   | "view_workflow_logs"
   | "manage_api_connections"
   | "view_workflow_templates"
+  | "view_crm"
+  | "manage_crm"
+  | "record_calls"
+  | "view_call_recordings"
+  | "transcribe_calls"
+  | "view_lead_scoring"
+  | "edit_lead_scoring"
+  | "view_inquiry_activities"
+  | "create_inquiry_activities"
+  | "edit_inquiry_activities"
+  | "delete_inquiry_activities"
+  | "view_follow_ups"
+  | "create_follow_ups"
+  | "complete_follow_ups"
+  | "view_crm_analytics"
+  | "qualify_leads"
+  | "assign_leads"
+  | "view_call_analytics"
+  | "export_crm_data"
 
 const rolePermissions: Record<UserRole, Permission[]> = {
   SUPER_ADMIN: [
@@ -173,6 +200,14 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "delete_accounts",
     "view_setup",
     "manage_setup",
+    "view_approval_hierarchies",
+    "create_approval_hierarchies",
+    "edit_approval_hierarchies",
+    "delete_approval_hierarchies",
+    "view_approval_requests",
+    "create_approval_requests",
+    "approve_requests",
+    "reject_requests",
     "view_employees",
     "create_employees",
     "edit_employees",
@@ -237,6 +272,25 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "view_workflow_logs",
     "manage_api_connections",
     "view_workflow_templates",
+    "view_crm",
+    "manage_crm",
+    "record_calls",
+    "view_call_recordings",
+    "transcribe_calls",
+    "view_lead_scoring",
+    "edit_lead_scoring",
+    "view_inquiry_activities",
+    "create_inquiry_activities",
+    "edit_inquiry_activities",
+    "delete_inquiry_activities",
+    "view_follow_ups",
+    "create_follow_ups",
+    "complete_follow_ups",
+    "view_crm_analytics",
+    "qualify_leads",
+    "assign_leads",
+    "view_call_analytics",
+    "export_crm_data",
   ],
   CENTER_DIRECTOR: [
     "view_dashboard",
@@ -267,6 +321,21 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "view_analytics",
     "view_powerbi",
     "approve_level_1",
+    "view_crm",
+    "record_calls",
+    "view_call_recordings",
+    "view_lead_scoring",
+    "edit_lead_scoring",
+    "view_inquiry_activities",
+    "create_inquiry_activities",
+    "edit_inquiry_activities",
+    "view_follow_ups",
+    "create_follow_ups",
+    "complete_follow_ups",
+    "view_crm_analytics",
+    "qualify_leads",
+    "assign_leads",
+    "view_call_analytics",
   ],
   TRAINER: [
     "view_dashboard",
@@ -293,6 +362,17 @@ const rolePermissions: Record<UserRole, Permission[]> = {
     "view_enrollments",
     "create_enrollments",
     "view_students",
+    "view_crm",
+    "record_calls",
+    "view_call_recordings",
+    "transcribe_calls",
+    "view_lead_scoring",
+    "view_inquiry_activities",
+    "create_inquiry_activities",
+    "view_follow_ups",
+    "create_follow_ups",
+    "complete_follow_ups",
+    "qualify_leads",
   ],
   STUDENT: [
     "view_dashboard",

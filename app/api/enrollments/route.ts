@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { requireAuth } from "@/lib/session"
 import { hasPermission } from "@/lib/permissions"
+import { randomUUID } from "crypto"
 
 export async function GET(request: NextRequest) {
   try {
@@ -64,8 +65,8 @@ export async function GET(request: NextRequest) {
         },
         batches: {
           select: {
-            name: true,
-            code: true,
+            batchName: true,
+            batchCode: true,
           },
         },
       },
@@ -122,17 +123,19 @@ export async function POST(request: NextRequest) {
     // Create enrollment
     const newEnrollment = await prisma.enrollments.create({
       data: {
+        id: randomUUID(),
         enrollmentNumber,
         studentId,
         courseId,
-        batchId: batchId || undefined,
+        batchId: batchId || null,
         centerId,
         status: "ACTIVE",
         totalFees: parseFloat(totalFees),
         paidAmount: paidAmount ? parseFloat(paidAmount) : 0,
         paymentStatus: paymentStatus || "PENDING",
-        startDate: startDate ? new Date(startDate) : undefined,
+        startDate: startDate ? new Date(startDate) : null,
         createdById: user.id,
+        updatedAt: new Date(),
       },
       include: {
         students: {

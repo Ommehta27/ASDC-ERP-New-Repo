@@ -33,6 +33,14 @@ import {
   Workflow,
   Zap,
   Plug,
+  Phone,
+  PhoneCall,
+  Activity,
+  Target,
+  Thermometer,
+  MessageSquare,
+  TrendingUp as TrendingUpIcon,
+  GitBranch,
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import Image from "next/image"
@@ -56,6 +64,10 @@ const studentLifecycle: NavItem[] = [
   { title: "Placements", href: "/placements", icon: Briefcase },
   { title: "Courses", href: "/courses", icon: GraduationCap },
   { title: "Centers", href: "/centers", icon: Building2 },
+]
+
+const crmModules: NavItem[] = [
+  { title: "CRM Analytics", href: "/crm/analytics", icon: BarChart3 },
 ]
 
 const inventoryModules: NavItem[] = [
@@ -97,6 +109,7 @@ const workflowModules: NavItem[] = [
 const setupModules: NavItem[] = [
   { title: "Company", href: "/setup/company", icon: Building2 },
   { title: "Employee Setup", href: "/setup/employees", icon: Users },
+  { title: "Approval Hierarchies", href: "/setup/approval-hierarchies", icon: GitBranch },
   { title: "Unit of Measure", href: "/setup/uom", icon: Settings },
   { title: "PO Templates", href: "/setup/po-templates", icon: FileText },
   { title: "System Lists", href: "/setup/system-lists", icon: Settings },
@@ -105,6 +118,7 @@ const setupModules: NavItem[] = [
 
 const navGroups: NavGroup[] = [
   { label: "Student Life Cycle", items: studentLifecycle },
+  { label: "CRM & Leads", items: crmModules },
   { label: "HR & Payroll", items: hrModules },
   { label: "Inventory", items: inventoryModules },
   { label: "Procurement", items: procurementModules },
@@ -123,6 +137,7 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false)
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     "Student Life Cycle": true,
+    "CRM & Leads": true,
     "Inventory": true,
     "Procurement": true,
     "Finance": true,

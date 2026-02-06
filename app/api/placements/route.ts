@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { requireAuth } from "@/lib/session"
 import { hasPermission } from "@/lib/permissions"
+import { randomUUID } from "crypto"
 
 export async function GET(request: NextRequest) {
   try {
@@ -110,6 +111,7 @@ export async function POST(request: NextRequest) {
     // Create placement
     const newPlacement = await prisma.placements.create({
       data: {
+        id: randomUUID(),
         placementNumber,
         studentId,
         companyName,
@@ -122,6 +124,7 @@ export async function POST(request: NextRequest) {
         centerId,
         status: "IN_PROGRESS",
         createdById: user.id,
+        updatedAt: new Date(),
       },
       include: {
         students: {

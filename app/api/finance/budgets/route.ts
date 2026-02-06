@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
     const budgets = await prisma.budgets.findMany({
       where: {
-        ...(status && { status }),
+        ...(status && { status: status as any }),
         ...(periodId && { periodId }),
       },
       include: {
