@@ -22,19 +22,28 @@ function LoginForm() {
     e.preventDefault()
     setLoading(true)
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    })
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      })
 
-    setLoading(false)
+      setLoading(false)
 
-    if (result?.error) {
-      toast.error("Invalid email or password")
-    } else {
-      router.push(callbackUrl)
-      router.refresh()
+      if (result?.error) {
+        console.error("Login error:", result.error)
+        toast.error(result.error === "CredentialsSignin" ? "Invalid email or password" : "Login failed. Please try again.")
+      } else if (result?.ok) {
+        router.push(callbackUrl)
+        router.refresh()
+      } else {
+        toast.error("Login failed. Please try again.")
+      }
+    } catch (error) {
+      setLoading(false)
+      console.error("Login exception:", error)
+      toast.error("An error occurred. Please try again.")
     }
   }
 

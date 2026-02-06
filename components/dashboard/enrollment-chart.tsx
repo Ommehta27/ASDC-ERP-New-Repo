@@ -1,5 +1,13 @@
 import prisma from "@/lib/prisma"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import type { EnrollmentStatus } from "@prisma/client"
+
+type EnrollmentStat = {
+  status: EnrollmentStatus
+  _count: {
+    id: number
+  }
+}
 
 export async function EnrollmentChart() {
   // Get enrollment statistics by status
@@ -27,9 +35,9 @@ export async function EnrollmentChart() {
   })
 
   // Calculate totals
-  const totalEnrollments = enrollmentStats.reduce((sum, stat) => sum + stat._count.id, 0)
-  const activeEnrollments = enrollmentStats.find(s => s.status === "ACTIVE")?._count.id || 0
-  const completedEnrollments = enrollmentStats.find(s => s.status === "COMPLETED")?._count.id || 0
+  const totalEnrollments = enrollmentStats.reduce((sum: number, stat: EnrollmentStat) => sum + stat._count.id, 0)
+  const activeEnrollments = enrollmentStats.find((s: EnrollmentStat) => s.status === "ACTIVE")?._count.id || 0
+  const completedEnrollments = enrollmentStats.find((s: EnrollmentStat) => s.status === "COMPLETED")?._count.id || 0
 
   const statusColors: Record<string, string> = {
     PENDING: "#6B7280",
@@ -65,7 +73,7 @@ export async function EnrollmentChart() {
 
           <div className="space-y-2 pt-4">
             <p className="text-sm font-medium">By Status</p>
-            {enrollmentStats.map((stat) => (
+            {enrollmentStats.map((stat: EnrollmentStat) => (
               <div key={stat.status} className="space-y-1">
                 <div className="flex items-center justify-between text-sm">
                   <span className="capitalize">{stat.status.toLowerCase().replace(/_/g, " ")}</span>

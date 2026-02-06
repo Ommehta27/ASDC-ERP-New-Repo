@@ -4,9 +4,11 @@ import { getToken } from "next-auth/jwt"
 
 export async function middleware(request: NextRequest) {
   // Get the token from the request
+  // NextAuth v5 supports both AUTH_SECRET and NEXTAUTH_SECRET
+  const secret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET
   const token = await getToken({ 
     req: request,
-    secret: process.env.NEXTAUTH_SECRET 
+    secret: secret
   })
 
   // If no token, redirect to login
