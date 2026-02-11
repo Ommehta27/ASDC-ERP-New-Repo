@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, Suspense } from "react"
+import { useState, Suspense, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
@@ -8,6 +8,20 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
+
+// Static fallback: same on server and client to avoid hydration mismatch
+function LoginFallback() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <Card className="w-full max-w-md border border-border/60 bg-card/90">
+        <CardHeader className="space-y-1 text-center">
+          <CardTitle className="text-2xl font-bold tracking-tight">ASDC Vantage</CardTitle>
+          <CardDescription>Loading...</CardDescription>
+        </CardHeader>
+      </Card>
+    </div>
+  )
+}
 
 function LoginForm() {
   const router = useRouter()
@@ -98,17 +112,19 @@ function LoginForm() {
 }
 
 export default function LoginPage() {
+  // Defer content that uses useSearchParams until after mount so server and client
+  // render the same HTML first (avoids hydration mismatch with Suspense fallback).
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return <LoginFallback />
+  }
+
   return (
-    <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Card className="w-full max-w-md border border-border/60 bg-card/90">
-          <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold tracking-tight">ASDC Vantage</CardTitle>
-            <CardDescription>Loading...</CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    }>
+    <Suspense fallback={<LoginFallback />}>
       <LoginForm />
     </Suspense>
   )
